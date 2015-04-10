@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.tonicsystems.jarjar</groupId>
+  <groupId>org.pantsbuild.jarjar</groupId>
   <artifactId>jarjar-plugin</artifactId>
   <packaging>maven-plugin</packaging>
   <version>@VERSION@</version>
   <name>Jar Jar Links Maven Plugin</name>
-  <url>http://tonicsystems.com/products/jarjar/</url>
+  <url>https://github.com/pantsbuild/jarjar</url>
   <dependencies>
     <dependency>
       <groupId>org.apache.maven</groupId>

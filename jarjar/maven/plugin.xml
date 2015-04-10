@@ -1,6 +1,6 @@
 <plugin>
   <description></description>
-  <groupId>com.tonicsystems.jarjar</groupId>
+  <groupId>org.pantsbuild.jarjar</groupId>
   <artifactId>jarjar-plugin</artifactId>
   <version>@VERSION@</version>
   <goalPrefix>jarjar</goalPrefix>
@@ -16,7 +16,7 @@
       <aggregator>false</aggregator>
       <requiresOnline>false</requiresOnline>
       <inheritedByDefault>true</inheritedByDefault>
-      <implementation>com.tonicsystems.jarjar.JarJarMojo</implementation>
+      <implementation>org.pantsbuild.jarjar.JarJarMojo</implementation>
       <language>java</language>
       <instantiationStrategy>per-lookup</instantiationStrategy>
       <executionStrategy>once-per-session</executionStrategy>

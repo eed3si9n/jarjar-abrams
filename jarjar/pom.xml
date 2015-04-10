@@ -1,5 +1,7 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -8,37 +10,35 @@
     <version>7</version>
   </parent>
 
-  <groupId>com.googlecode.jarjar</groupId>
+  <groupId>org.pantsbuild.jarjar</groupId>
   <artifactId>jarjar</artifactId>
   <packaging>jar</packaging>
-  <version>1.3</version>
+  <!-- Set by `ant stage` to the jarjar.version value in build.properties when it calls us -->
+  <version>1.5</version>
+
   <name>Jar Jar Links</name>
   <description>Jar Jar Links is a utility that makes it easy to repackage Java libraries and embed them into your own distribution.</description>
-  <url>http://jarjar.googlecode.com/</url>
+  <url>https://github.com/pantsbuild/jarjar</url>
   <licenses>
     <license>
       <name>Apache License version 2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://jarjar.googlecode.com/svn/trunk/</connection>
-    <url>http://code.google.com/p/jarjar/source/checkout</url>
+    <connection>scm:git:https://github.com/pantsbuild/jarjar.git</connection>
+    <url>https://github.com/pantsbuild/jarjar</url>
   </scm>
   <issueManagement>
-    <system>Google Code</system>
-    <url>http://code.google.com/p/jarjar/issues</url>
+    <system>Github</system>
+    <url>https://github.com/pantsbuild/jarjar/issues</url>
   </issueManagement>
-  <dependencies></dependencies>
   <developers>
     <developer>
-      <id>cnokleberg</id>
-      <name>Chris Nokleberg</name>
-    </developer>
-    <developer>
-      <id>aglenning</id>
-      <name>A. Glenning</name>
+      <id>jsirois</id>
+      <name>John Sirois</name>
     </developer>
   </developers>
+
+  <dependencies></dependencies>
 </project>
