@@ -5,6 +5,11 @@
 REPO_ROOT=$(cd $(dirname "${BASH_SOURCE[0]}") && cd "$(git rev-parse --show-toplevel)" && pwd)
 cd ${REPO_ROOT}
 
+function die() {
+  echo "$@"
+  exit 1
+}
+
 function local_version() {
   grep jarjar.version build.properties | cut -d= -f2
 }
@@ -49,5 +54,19 @@ while getopts "h" opt; do
   esac
 done
 
-ant stage
+check_clean_master
+ant stage || die "Failed to stage the release to https://oss.sonatype.org/#stagingRepositories"
+
+echo "The release has been staged at https://oss.sonatype.org/#stagingRepositories"
+echo
+echo "Please visit https://oss.sonatype.org/#stagingRepositories and search for"
+echo "'pantsbuild' to find the repo you just staged.  Once found, verify its"
+echo "contents.  If everything looks good, close the repo and answer 'y' to tag"
+echo "this release.  If things aren't right, instead drop the repo and answer 'n'."
+echo
+read -p "Tag the release? [yN]:" tag && \
+[[ "${tag/Y/y}" == "y" ]] || \
+  die "Release aborted.  Please drop the staging repo on sonatype."
+
+tag_release || die "Failed to tag the release."
 
