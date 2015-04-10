@@ -165,7 +165,7 @@
 		</artifact:mvn>
 
 		<!-- sign and deploy the javadoc artifact -->
-    <artifact:mvn fork="true">
+    <artifact:mvn mavenVersion="${maven.version}" fork="true">
 			<arg value="org.apache.maven.plugins:maven-gpg-plugin:1.6:sign-and-deploy-file"/>
 			<arg value="-Durl=${maven-staging-repository-url}"/>
 			<arg value="-DrepositoryId=${maven-staging-repository-id}"/>
