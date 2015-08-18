@@ -40,7 +40,7 @@ object ShadeRule {
 private[sbtassembly] case class ShadeTarget(toCompiling: Boolean = false, moduleID: Option[ModuleID] = None) {
 
   private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
-    moduleID.isDefined && mod.equals(moduleID)
+    moduleID.isDefined && mod.equals(moduleID.get)
 
 }
 
