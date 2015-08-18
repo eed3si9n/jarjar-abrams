@@ -3,42 +3,75 @@ package sbtassembly
 import java.io.File
 
 import org.pantsbuild.jarjar.ext_util.EntryStruct
-import org.pantsbuild.jarjar.{JJProcessor, Keep, Zap, Rule}
+import org.pantsbuild.jarjar._
 
 import sbt._
 
-object Shader {
+case class ShadeRuleConfigured(rule: ShadeRule, targets: Seq[ShadeTarget] = Seq()) {
 
-  def rename(patterns: (String, String)*): ShadeRule =
-    ShadeRule(rule = "rename", renames = patterns.toMap)
+  def applyTo(moduleID: ModuleID): ShadeRuleConfigured =
+    this.copy(targets = targets :+ ShadeTarget(moduleID = Some(moduleID)))
 
-  def remove(patterns: String*): ShadeRule =
-    ShadeRule(rule = "remove", patterns = patterns.toSet)
+  def applyToCompiling(): ShadeRuleConfigured =
+    this.copy(targets = targets :+ ShadeTarget(toCompiling = true))
 
-  def keepOnly(patterns: String*): ShadeRule =
-    ShadeRule(rule = "keepOnly", patterns = patterns.toSet)
+  private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
+    targets.exists(_.isApplicableTo(mod))
 
-  private[sbtassembly] def shadeDirectory(rules: Seq[ShadeRule], dir: File, log: Logger): Unit = {
+  private[sbtassembly] def isApplicableToCompiling: Boolean =
+    targets.exists(_.toCompiling)
+
+}
+
+sealed trait ShadeRule
+
+object ShadeRule {
+
+  case class Rename(patterns: (String, String)*) extends ShadeRule
+
+  case class Remove(patterns: String*) extends ShadeRule
+
+  case class KeepOnly(patterns: String*) extends ShadeRule
+
+  implicit def toShadeRuleConfigured(rule: ShadeRule): ShadeRuleConfigured = ShadeRuleConfigured(rule)
+
+}
+
+private[sbtassembly] case class ShadeTarget(toCompiling: Boolean = false, moduleID: Option[ModuleID] = None) {
+
+  private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
+    moduleID.isDefined && mod.equals(moduleID)
+
+}
+
+private[sbtassembly] object Shader {
+
+  import ShadeRule._
+
+  private[sbtassembly] def shadeDirectory(rules: Seq[ShadeRuleConfigured], dir: File, log: Logger): Unit = {
     val jjrules = rules flatMap { r => r.rule match {
-      case "rename" =>
-        r.renames.map { case (from, to) =>
+      case Rename(patterns @ _*) =>
+        patterns.map { case (from, to) =>
           val jrule = new Rule()
           jrule.setPattern(from)
           jrule.setResult(to)
           jrule
         }
-      case "remove" =>
-        r.patterns.map { case pattern =>
+
+      case Remove(patterns @ _*) =>
+        patterns.map { case pattern =>
           val jrule = new Zap()
           jrule.setPattern(pattern)
           jrule
         }
-      case "keepOnly" =>
-        r.patterns.map { case pattern =>
+
+      case KeepOnly(patterns @ _*) =>
+        patterns.map { case pattern =>
           val jrule = new Keep()
           jrule.setPattern(pattern)
           jrule
         }
+
       case _ => Nil
     }}
 
@@ -57,37 +90,5 @@ object Shader {
       if (f._2 != entry.name) IO.delete(f._1)
     }
   }
-
-}
-
-case class ShadeTarget(toCompiling: Boolean = false,
-                       group: Option[String] = None,
-                       artifact: Option[String] = None,
-                       version: Option[String] = None) {
-  private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
-    group.isDefined && group.get == mod.organization &&
-      artifact.isDefined && artifact.get == mod.name &&
-      (version.isEmpty || version.get == mod.revision)
-}
-
-case class ShadeRule(rule: String,
-                     renames: Map[String, String] = Map(),
-                     patterns: Set[String] = Set(),
-                     targets: Seq[ShadeTarget] = Seq()) {
-
-  def applyToCompiling: ShadeRule =
-    this.copy(targets = targets :+ ShadeTarget(true))
-
-  def applyTo(group: String, artifact: String): ShadeRule =
-    this.copy(targets = targets :+ ShadeTarget(group = Some(group), artifact = Some(artifact)))
-
-  def applyTo(group: String, artifact: String, version: String): ShadeRule =
-    this.copy(targets = targets :+ ShadeTarget(group = Some(group), artifact = Some(artifact), version = Some(version)))
-
-  private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
-    targets.exists(_.isApplicableTo(mod))
-
-  private[sbtassembly] def isApplicableToCompiling: Boolean =
-    targets.exists(_.toCompiling)
 
 }
