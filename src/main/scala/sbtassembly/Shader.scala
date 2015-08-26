@@ -48,7 +48,7 @@ private[sbtassembly] object Shader {
 
   import ShadeRule._
 
-  private[sbtassembly] def shadeDirectory(rules: Seq[ShadeRuleConfigured], dir: File, log: Logger): Unit = {
+  def shadeDirectory(rules: Seq[ShadeRuleConfigured], dir: File, log: Logger): Unit = {
     val jjrules = rules flatMap { r => r.rule match {
       case Rename(patterns @ _*) =>
         patterns.map { case (from, to) =>
@@ -84,11 +84,17 @@ private[sbtassembly] object Shader {
       entry.name = f._2
       entry.time = -1
 
-      proc.process(entry)
+      if (proc.process(entry)) {
+        IO.write(dir / entry.name, entry.data)
+      } else {
+        IO.delete(f._1)
+      }
 
-      IO.write(dir / entry.name, entry.data)
-      if (f._2 != entry.name) IO.delete(f._1)
     }
+
+    val excludes = proc.getExcludes()
+    excludes.foreach(exclude => IO.delete(dir / exclude))
+
   }
 
 }

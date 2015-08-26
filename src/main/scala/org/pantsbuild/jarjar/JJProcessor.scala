@@ -6,7 +6,20 @@ import scala.collection.JavaConverters._
 
 class JJProcessor(val proc: JarProcessor) {
 
-  def process(entry: EntryStruct): Unit = proc.process(entry)
+  def process(entry: EntryStruct): Boolean = proc.process(entry)
+
+  def getExcludes(): Set[String] = {
+    val field = proc.getClass().getDeclaredField("kp")
+    field.setAccessible(true)
+    val keepProcessor = field.get(proc)
+
+    if (keepProcessor == null) Set()
+    else {
+      val method = proc.getClass().getDeclaredMethod("getExcludes")
+      method.setAccessible(true)
+      method.invoke(proc).asInstanceOf[java.util.Set[String]].asScala.toSet
+    }
+  }
 
 }
 
