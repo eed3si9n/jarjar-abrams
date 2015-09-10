@@ -56,7 +56,7 @@ private[sbtassembly] case class ShadeTarget(
 }
 
 private[sbtassembly] object Shader {
-  def shadeDirectory(rules: Seq[ShadeRule], dir: File, log: Logger): Unit = {
+  def shadeDirectory(rules: Seq[ShadeRule], dir: File, log: Logger, level: Level.Value): Unit = {
     val jjrules = rules flatMap { r => r.shadePattern match {
       case ShadeRule.Rename(patterns) =>
         patterns.map { case (from, to) =>
@@ -80,7 +80,7 @@ private[sbtassembly] object Shader {
       case _ => Nil
     }}
 
-    val proc = JJProcessor(jjrules, true, true)
+    val proc = JJProcessor(jjrules, verbose = level == Level.Debug, true)
     val files = AssemblyUtils.getMappings(dir, Set())
 
     val entry = new EntryStruct
@@ -88,18 +88,13 @@ private[sbtassembly] object Shader {
       entry.data = IO.readBytes(f._1)
       entry.name = f._2
       entry.time = -1
-
+      IO.delete(f._1)
       if (proc.process(entry)) {
         IO.write(dir / entry.name, entry.data)
-      } else {
-        IO.delete(f._1)
       }
-
     }
-
     val excludes = proc.getExcludes()
     excludes.foreach(exclude => IO.delete(dir / exclude))
-
   }
 
 }
