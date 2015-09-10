@@ -47,7 +47,12 @@ private[sbtassembly] case class ShadeTarget(
   moduleID: Option[ModuleID] = None) {
 
   private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
-    inAll || (moduleID.isDefined && mod.equals(moduleID.get))
+    inAll || (moduleID match {
+      case Some(m) if (m.organization == mod.organization) && (m.name == mod.name) && (m.revision == mod.revision) =>
+        true
+      case _ =>
+        false
+    })
 }
 
 private[sbtassembly] object Shader {
