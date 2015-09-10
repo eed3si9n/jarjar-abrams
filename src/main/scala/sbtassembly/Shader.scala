@@ -34,11 +34,11 @@ sealed trait ShadePattern {
 
 object ShadeRule {
   def rename(patterns: (String, String)*): ShadePattern = Rename(patterns.toSeq.toList)
-  def remove(patterns: String*): ShadePattern = Remove(patterns.toSeq.toList)
-  def keepOnly(patterns: String*): ShadePattern = KeepOnly(patterns.toSeq.toList)
+  def zap(patterns: String*): ShadePattern = Zap(patterns.toSeq.toList)
+  def keep(patterns: String*): ShadePattern = Keep(patterns.toSeq.toList)
   private[sbtassembly] case class Rename(patterns: List[(String, String)]) extends ShadePattern
-  private[sbtassembly] case class Remove(patterns: List[String]) extends ShadePattern
-  private[sbtassembly] case class KeepOnly(patterns: List[String]) extends ShadePattern
+  private[sbtassembly] case class Zap(patterns: List[String]) extends ShadePattern
+  private[sbtassembly] case class Keep(patterns: List[String]) extends ShadePattern
 }
 
 private[sbtassembly] case class ShadeTarget(
@@ -56,25 +56,22 @@ private[sbtassembly] case class ShadeTarget(
 }
 
 private[sbtassembly] object Shader {
-
-  import ShadeRule._
-
   def shadeDirectory(rules: Seq[ShadeRule], dir: File, log: Logger): Unit = {
     val jjrules = rules flatMap { r => r.shadePattern match {
-      case Rename(patterns) =>
+      case ShadeRule.Rename(patterns) =>
         patterns.map { case (from, to) =>
           val jrule = new Rule()
           jrule.setPattern(from)
           jrule.setResult(to)
           jrule
         }
-      case Remove(patterns) =>
+      case ShadeRule.Zap(patterns) =>
         patterns.map { case pattern =>
           val jrule = new Zap()
           jrule.setPattern(pattern)
           jrule
         }
-      case KeepOnly(patterns) =>
+      case ShadeRule.Keep(patterns) =>
         patterns.map { case pattern =>
           val jrule = new Keep()
           jrule.setPattern(pattern)
