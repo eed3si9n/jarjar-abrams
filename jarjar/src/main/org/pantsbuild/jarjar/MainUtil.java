@@ -39,11 +39,11 @@ class MainUtil
                         Throwable cause = e.getCause();
                         if (cause instanceof IllegalArgumentException) {
                             System.err.println("Syntax error: " + cause.getMessage());
-                        } else if (cause instanceof Exception) {
-                            throw (Exception) cause;
-                        } else {
-                            throw e;
                         }
+                        if (cause instanceof Exception) {
+                            throw (Exception) cause;
+                        }
+                        throw e;
                     }
                     return;
                 }

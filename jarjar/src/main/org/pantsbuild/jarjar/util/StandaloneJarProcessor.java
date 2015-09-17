@@ -52,7 +52,7 @@ public class StandaloneJarProcessor
                     } else if (struct.name.endsWith("/")) {
                         // TODO(chrisn): log
                     } else {
-                        throw new IllegalArgumentException("Duplicate jar entries: " + struct.name);
+                        throw new DuplicateJarEntryException(from.getAbsolutePath(), struct.name);
                     }
                 }
             }
