@@ -16,22 +16,27 @@
 
 package org.pantsbuild.jarjar;
 
-import junit.framework.*;
-
 import java.util.Collections;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import junit.framework.TestCase;
 
 public class PackageRemapperTest
 extends TestCase
 {
     protected PackageRemapper remapper;
 
-    protected void setUp() {
+    @Before
+    public void setUp() {
         Rule rule = new Rule();
         rule.setPattern("org.**");
         rule.setResult("foo.@1");
         remapper = new PackageRemapper(Collections.singletonList(rule), false);
     }
 
+    @Test
     public void testMapValue() {
       assertUnchangedValue("[^\\s;/@&=,.?:+$]");
       assertUnchangedValue("[Ljava/lang/Object;");

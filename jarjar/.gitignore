@@ -1,4 +1,9 @@
-/build/
+# pants work dirs
+/.pants.d/
 /dist/
+/.pids/
 
-/pom.xml.asc
+# IDEA project definition files
+*.iml
+*.ipr
+*.iws

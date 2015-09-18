@@ -16,14 +16,18 @@
 
 package org.pantsbuild.jarjar;
 
-import org.pantsbuild.jarjar.util.*;
-import junit.framework.*;
-import java.util.*;
+import java.util.Arrays;
+
+import org.junit.Test;
 import org.objectweb.asm.ClassReader;
+import org.pantsbuild.jarjar.util.RemappingClassTransformer;
+
+import junit.framework.TestCase;
 
 public class GenericsTest
 extends TestCase
 {
+    @Test
     public void testTransform() throws Exception {
          Rule rule = new Rule();
          rule.setPattern("java.lang.String");
@@ -32,13 +36,5 @@ extends TestCase
          t.setTarget(new EmptyClassVisitor());
          ClassReader reader = new ClassReader(getClass().getResourceAsStream("/Generics.class"));
          reader.accept(t, 0);
-    }
-
-    public GenericsTest(String name) {
-        super(name);
-    }
-
-    public static Test suite() {
-        return new TestSuite(GenericsTest.class);
     }
 }

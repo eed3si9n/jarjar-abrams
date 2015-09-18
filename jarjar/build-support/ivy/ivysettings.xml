@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<ivysettings>
+  <settings defaultResolver="maven-central"/>
+
+  <resolvers>
+      <!-- By default ivy does not require metadata (or successful metadata downloads).
+           This can lead to jars downloading without their transitive deps which leads
+           to confusing failures later when classpaths are constructed and used.
+           We setup the maven central resolver to require successful pom downloads here. -->
+      <ibiblio name="maven-central" m2compatible="true" descriptor="required"/>
+  </resolvers>
+</ivysettings>

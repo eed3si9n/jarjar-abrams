@@ -16,11 +16,14 @@
 
 package org.pantsbuild.jarjar;
 
-import junit.framework.*;
+import org.junit.Test;
+
+import junit.framework.TestCase;
 
 public class WildcardTest
 extends TestCase
 {
+    @Test
     public void testWildcards() {
         wildcard("net/sf/cglib/**", "foo/@1", "net/sf/cglib/proxy/Mixin$Generator",
             "foo/proxy/Mixin$Generator");
@@ -36,13 +39,5 @@ extends TestCase
         Wildcard wc = new Wildcard(pattern, result);
         // System.err.println(wc);
         assertEquals(expect, wc.replace(value));
-    }
-    
-    public WildcardTest(String name) {
-        super(name);
-    }
-
-    public static Test suite() {
-        return new TestSuite(WildcardTest.class);
     }
 }
