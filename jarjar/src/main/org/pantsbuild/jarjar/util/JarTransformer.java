@@ -21,16 +21,19 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
-abstract public class JarTransformer implements JarProcessor
-{
+abstract public class JarTransformer implements JarProcessor {
+
     public boolean process(EntryStruct struct) throws IOException {
-        if (struct.name.endsWith(".class")) {
+        if (struct.name.endsWith(".class") && !struct.skipTransform) {
             ClassReader reader;
             try {
                 reader = new ClassReader(struct.data);
             } catch (Exception e) {
-                return true; // TODO?
+                System.err.println("Unable to read bytecode from " + struct.name);
+                e.printStackTrace();
+                return true;
             }
+
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
             reader.accept(transform(w), ClassReader.EXPAND_FRAMES);
             struct.data = w.toByteArray();

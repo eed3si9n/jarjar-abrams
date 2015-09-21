@@ -90,7 +90,8 @@ public class Main {
     List<PatternElement> rules = RulesFileParser.parse(rulesFile);
     boolean verbose = Boolean.getBoolean("verbose");
     boolean skipManifest = Boolean.getBoolean("skipManifest");
-    MainProcessor proc = new MainProcessor(rules, verbose, skipManifest);
+    MainProcessor proc = new MainProcessor(rules, verbose, skipManifest,
+        System.getProperty("misplacedClassStrategy"));
     StandaloneJarProcessor.run(inJar, outJar, proc);
     proc.strip(outJar);
   }

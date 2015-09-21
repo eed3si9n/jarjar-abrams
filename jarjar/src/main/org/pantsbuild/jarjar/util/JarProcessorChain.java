@@ -32,13 +32,10 @@ public class JarProcessorChain implements JarProcessor
      * @return <code>true</code> if the entry has run the complete chain
      * @throws IOException
      */
-    public boolean process(EntryStruct struct) throws IOException
-    {
+    public boolean process(EntryStruct struct) throws IOException {
 
-        for (JarProcessor aChain : chain)
-        {
-            if (!aChain.process(struct))
-            {
+        for (JarProcessor processor : chain) {
+            if (!processor.process(struct)) {
                 return false;
             }
         }

@@ -21,7 +21,7 @@ import org.objectweb.asm.ClassVisitor;
 public class JarTransformerChain extends JarTransformer
 {
     private final RemappingClassTransformer[] chain;
-    
+
     public JarTransformerChain(RemappingClassTransformer[] chain) {
         this.chain = chain.clone();
         for (int i = chain.length - 1; i > 0; i--) {

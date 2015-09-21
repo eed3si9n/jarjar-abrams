@@ -16,6 +16,7 @@
 
 package org.pantsbuild.jarjar;
 
+import org.pantsbuild.jarjar.misplaced.MisplacedClassProcessorFactory;
 import org.pantsbuild.jarjar.util.*;
 import java.io.File;
 import java.io.IOException;
@@ -27,8 +28,23 @@ class MainProcessor implements JarProcessor
     private final JarProcessorChain chain;
     private final KeepProcessor kp;
     private final Map<String, String> renames = new HashMap<String, String>();
-    
+
     public MainProcessor(List<PatternElement> patterns, boolean verbose, boolean skipManifest) {
+        this(patterns, verbose, skipManifest, null);
+    }
+
+    /**
+     * Creates a new MainProcessor, which automatically generates the standard zap, keep, remap,
+     * etc processors.
+     *
+     * @param patterns List of rules to parse.
+     * @param verbose Whether to verbosely log information.
+     * @param skipManifest If true, omits the manifest file from the processed jar.
+     * @param misplacedClassStrategy The strategy to use when processing class files that are in the
+     * wrong package (see MisplacedClassProcessorFactory.STRATEGY_* constants).
+     */
+    public MainProcessor(List<PatternElement> patterns, boolean verbose, boolean skipManifest,
+                         String misplacedClassStrategy) {
         this.verbose = verbose;
         List<Zap> zapList = new ArrayList<Zap>();
         List<Rule> ruleList = new ArrayList<Rule>();
@@ -51,8 +67,15 @@ class MainProcessor implements JarProcessor
             processors.add(ManifestProcessor.getInstance());
         if (kp != null)
             processors.add(kp);
+
+        JarProcessor misplacedClassProcessor = MisplacedClassProcessorFactory.getInstance()
+            .getProcessorForName(misplacedClassStrategy);
+
         processors.add(new ZapProcessor(zapList));
-        processors.add(new JarTransformerChain(new RemappingClassTransformer[]{ new RemappingClassTransformer(pr) }));
+        processors.add(misplacedClassProcessor);
+        processors.add(new JarTransformerChain(new RemappingClassTransformer[] {
+            new RemappingClassTransformer(pr)
+        }));
         processors.add(new ResourceProcessor(pr));
         chain = new JarProcessorChain(processors.toArray(new JarProcessor[processors.size()]));
     }
