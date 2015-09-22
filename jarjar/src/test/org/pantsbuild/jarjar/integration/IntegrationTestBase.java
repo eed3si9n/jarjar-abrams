@@ -6,13 +6,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.tools.JavaCompiler;
+import javax.tools.StandardJavaFileManager;
+import javax.tools.ToolProvider;
 import junit.framework.TestCase;
+import org.apache.commons.lang3.JavaVersion;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
@@ -47,28 +53,17 @@ public abstract class IntegrationTestBase extends TestCase {
    * @param args The varargs list of arguments to javac.
    * @return true if javac succeeds, false otherwise.
    */
-  protected boolean tryCompile(File directory, String ... args) {
-    List<String> javacArgs = new LinkedList<String>();
-    javacArgs.add("javac");
+  protected boolean tryCompile(File directory, String[] paths, String ... args) {
+    JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+    StandardJavaFileManager fileManager = compiler.getStandardFileManager(null, null, null);
 
-    for (String arg : args) {
-      javacArgs.add(arg);
+    List<File> files = new ArrayList<File>(paths.length);
+    for (String path : paths) {
+      files.add(new File(directory.getAbsolutePath() + File.separator + path));
     }
 
-    String[] cmd = javacArgs.toArray(new String[javacArgs.size()]);
-
-    try {
-      Process p = Runtime.getRuntime().exec(cmd, null, directory);
-      ProcessCommunicator cp = new ProcessCommunicator(p);
-      int result = cp.communicate();
-      System.out.println(cp.getStdoutText());
-      System.out.println(cp.getStderrText());
-      return result == 0;
-    } catch (IOException e) {
-      return false;
-    } catch (InterruptedException e) {
-      return false;
-    }
+    return compiler.getTask(null, fileManager, null, Arrays.asList(args), null,
+        fileManager.getJavaFileObjectsFromFiles(files)).call();
   }
 
   /**
@@ -257,6 +252,17 @@ public abstract class IntegrationTestBase extends TestCase {
     sb.append(" { /* NOTHING TO SEE HERE */ }\n");
 
     return sb.toString();
+  }
+
+  /**
+   * Returns true if the system java version is at least as great as the input java version.
+   *
+   * @param version The java version, formated as %d.%d (eg, 1.8).
+   * @return
+   */
+  public boolean javaVersionIsAtLeast(String version) {
+    String enumName = "JAVA_" + version.replace('.', '_');
+    return SystemUtils.isJavaVersionAtLeast(JavaVersion.valueOf(enumName));
   }
 
 }

@@ -95,8 +95,10 @@ public class BadPackagesTest extends IntegrationTestBase {
     files.put(sourcePath, basicJavaFile(className));
     files.put("README.md", "# Just making sure that normal resource files still work fine.");
 
+    String[] paths =  new String[] { sourcePath };
+
     File folder = createTree(files);
-    Assert.assertTrue(tryCompile(folder, "-source", "6", "-target", "6", sourcePath));
+    Assert.assertTrue(tryCompile(folder, paths,"-source", "6", "-target", "6"));
 
     File srcFile = new File(folder + File.separator + binaryPath);
     File dstFile = new File(folder + File.separator + "Misnamed.class");
@@ -141,15 +143,17 @@ public class BadPackagesTest extends IntegrationTestBase {
     Map<String, String> files = new HashMap<String, String>();
     files.put(sourcePath, basicJavaFile(className));
 
+    String[] paths = { sourcePath };
+
     File folder = createTree(files);
-    Assert.assertTrue(tryCompile(folder, "-source", "6", "-target", "6", sourcePath));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
 
     File srcFile = new File(folder + File.separator + binaryPath);
     File dstFile = new File(folder + File.separator + "oldversion" + File.separator + binaryPath);
     dstFile.getParentFile().mkdirs();
     srcFile.renameTo(dstFile);
 
-    Assert.assertTrue(tryCompile(folder, "-source", "6", "-target", "6", sourcePath));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
 
     for (String file : new FileTree(folder)) {
       if (file.endsWith(".java")) {

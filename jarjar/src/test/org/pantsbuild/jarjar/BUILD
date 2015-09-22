@@ -1,6 +1,6 @@
 junit_tests(
   name='jarjar',
-  sources=rglobs('*.java'),
+  sources=globs('*.java'),
   resources=[
     'src/test:generics-precompiled',
   ],
@@ -8,6 +8,8 @@ junit_tests(
     'lib:asm',
     'lib:junit',
     'src/main/org/pantsbuild/jarjar',
+    'src/test/org/pantsbuild/jarjar/integration',
+    'src/test/org/pantsbuild/jarjar/example',
   ]
 )
 
