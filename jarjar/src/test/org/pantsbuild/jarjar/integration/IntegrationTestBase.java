@@ -102,7 +102,7 @@ public abstract class IntegrationTestBase extends TestCase {
    *
    * The values for each key are written to the contents of each file.
    *
-   * @param filenamesToContents A map of (relative path name) -> (contents of file).
+   * @param filenamesToContents A map of (relative path name) -$gt; (contents of file).
    * @return the temporary directory file object.
    */
   protected File createTree(Map<String, String> filenamesToContents) throws IOException {

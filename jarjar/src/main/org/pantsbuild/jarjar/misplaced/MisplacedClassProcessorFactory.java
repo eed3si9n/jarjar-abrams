@@ -35,8 +35,6 @@ public class MisplacedClassProcessorFactory {
 
   /**
    * Returns the default misplaced class processor, which is "omit".
-   *
-   * @return
    */
   public MisplacedClassProcessor getDefaultProcessor() {
     return new OmitMisplacedClassProcessor();
@@ -48,7 +46,7 @@ public class MisplacedClassProcessorFactory {
    * @param name The case-insensitive user-level strategy name (see the STRATEGY_* constants).
    * @return The MisplacedClassProcessor corresponding to the strategy name, or the result of
    * getDefaultProcessor() if name is null.
-   * @throws IllegalAccessException if an unrecognized non-null strategy name is specified.
+   * @throws IllegalArgumentException if an unrecognized non-null strategy name is specified.
    */
   public MisplacedClassProcessor getProcessorForName(String name) {
     if (name == null) {
