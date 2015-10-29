@@ -1,6 +1,6 @@
 package org.pantsbuild.jarjar
 
-import org.pantsbuild.jarjar.ext_util.{EntryStruct, JarProcessor}
+import org.pantsbuild.jarjar.util.{EntryStruct, JarProcessor}
 
 import scala.collection.JavaConverters._
 
