@@ -30,7 +30,8 @@ public class StandaloneJarProcessor
 
         JarFile in = new JarFile(from);
         final File tmpTo = File.createTempFile("jarjar", ".jar");
-        JarOutputStream out = new JarOutputStream(new FileOutputStream(tmpTo));
+        BufferedOutputStream buffered = new BufferedOutputStream(new FileOutputStream(tmpTo));
+        JarOutputStream out = new JarOutputStream(buffered);
         Set<String> entries = new HashSet<String>();
         try {
             EntryStruct struct = new EntryStruct();

@@ -62,7 +62,9 @@ class IoUtil {
         final byte[] buf = new byte[0x2000];
 
         final ZipFile inputZip = new ZipFile(inputFile);
-        final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(outputFile));
+        BufferedOutputStream buffered = new BufferedOutputStream(new FileOutputStream(outputFile));
+
+        final ZipOutputStream outputStream = new ZipOutputStream(buffered);
         try
         {
             // read a the entries of the input zip file and sort them
