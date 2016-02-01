@@ -3,7 +3,7 @@ java_library(
   provides=artifact(
     org='org.pantsbuild',
     name='jarjar',
-    repo=Repository(
+    repo=repository(
       name='public',
       url='https://oss.sonatype.org/#stagingRepositories',
       push_db_basedir='build-support/ivy/pushdb'

@@ -7,9 +7,9 @@ junit_tests(
   dependencies=[
     'lib:asm',
     'lib:junit',
-    'src/main/org/pantsbuild/jarjar',
-    'src/test/org/pantsbuild/jarjar/integration',
-    'src/test/org/pantsbuild/jarjar/example',
+    'src/main/java/org/pantsbuild/jarjar',
+    'src/test/java/org/pantsbuild/jarjar/integration',
+    'src/test/java/org/pantsbuild/jarjar/example',
   ]
 )
 

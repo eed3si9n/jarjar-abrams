@@ -22,12 +22,13 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertEquals;
-
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Base class for jarjar integration tests. Provides common utilities.
  */
-public abstract class IntegrationTestBase extends TestCase {
+public abstract class IntegrationTestBase {
 
   @org.junit.Rule
   public TemporaryFolder workdir = new TemporaryFolder();
