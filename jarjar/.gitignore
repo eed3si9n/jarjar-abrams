@@ -2,6 +2,7 @@
 /.pants.d/
 /dist/
 /.pids/
+/.cache/
 
 # IDEA project definition files
 *.iml

@@ -2,6 +2,7 @@ package org.pantsbuild.jarjar.integration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,55 @@ public class BadPackagesTest extends IntegrationTestBase {
     Assert.assertTrue(entries.contains("Misnamed.class"));
     assertFalse(entries.contains("org/pantsbuild.jarjar/fake/Foobar.class"));
     assertTrue(entries.contains("README.md"));
+  }
+
+  @Test
+  public void testSkipOnlyMisnamedClass() throws Exception {
+    Map<String, String> classes = new HashMap<String, String>();
+    classes.put("a.b.c.Foobar", "a.b.c.Foobar");
+    classes.put("a.b.d.Foobar", "a.b.d.BadName");
+    classes.put("a.b.e.Foobar", "a.b.e.Foobar");
+    classes.put("a.c.d.Example", "a.c.d.Example");
+    File jar = createJarWithClasses(classes);
+
+    jar = shadeJar(jar, new HashMap<String, String>() {{
+      put("verbose", "true");
+      put("misplacedClassStrategy", "skip");
+    }}, new String[] {
+        "rule a.** b.@1",
+    });
+
+    List<String> entries = getJarEntries(jar);
+    Assert.assertTrue(entries.contains("b/b/c/Foobar.class"));
+    Assert.assertTrue(entries.contains("a/b/d/BadName.class"));
+    // Make sure we correctly shade entries that come after the misnamed class.
+    Assert.assertTrue(entries.contains("b/b/e/Foobar.class"));
+    Assert.assertTrue(entries.contains("b/c/d/Example.class"));
+  }
+
+  @Test
+  public void testOmitOnlyMisnamedClass() throws Exception {
+    Map<String, String> classes = new HashMap<String, String>();
+    classes.put("a.b.c.Foobar", "a.b.c.Foobar");
+    classes.put("a.b.d.Foobar", "a.b.d.BadName");
+    classes.put("a.b.e.Foobar", "a.b.e.Foobar");
+    classes.put("a.c.d.Example", "a.c.d.Example");
+    File jar = createJarWithClasses(classes);
+
+    jar = shadeJar(jar, new HashMap<String, String>() {{
+      put("verbose", "true");
+      put("misplacedClassStrategy", "omit");
+    }}, new String[] {
+        "rule a.** b.@1",
+    });
+
+    List<String> entries = getJarEntries(jar);
+    Assert.assertTrue(entries.contains("b/b/c/Foobar.class"));
+    Assert.assertFalse(entries.contains("a/b/d/BadName.class"));
+    Assert.assertFalse(entries.contains("b/b/d/BadName.class"));
+    // Make sure we correctly shade entries that come after the misnamed class.
+    Assert.assertTrue(entries.contains("b/b/e/Foobar.class"));
+    Assert.assertTrue(entries.contains("b/c/d/Example.class"));
   }
 
   @Test
@@ -87,24 +137,39 @@ public class BadPackagesTest extends IntegrationTestBase {
   }
 
   private File createJarWithMisnamedClass() throws Exception {
-    String className = "org.pantsbuild.jarjar.fake.Foobar";
-    String basePath = className.replaceAll("[.]", "/");
-    String sourcePath = basePath + ".java";
-    String binaryPath = basePath + ".class";
+    Map<String, String> classes = new HashMap<String, String>();
+    classes.put("org.pantsbuild.jarjar.fake.Foobar", "Misnamed");
+    return createJarWithClasses(classes);
+  }
 
+  private File createJarWithClasses(Map<String, String> classNameMap) throws Exception {
     Map<String, String> files = new HashMap<String, String>();
-    files.put(sourcePath, basicJavaFile(className));
+    Map<String, String> nameToBinaryPath = new HashMap<String, String>();
+    List<String> sourcePaths = new ArrayList<String>(classNameMap.size());
     files.put("README.md", "# Just making sure that normal resource files still work fine.");
+    for (String className : classNameMap.keySet()) {
+      String basePath = className.replaceAll("[.]", "/");
+      String sourcePath = basePath + ".java";
+      String binaryPath = basePath + ".class";
+      files.put(sourcePath, basicJavaFile(className));
+      nameToBinaryPath.put(className, binaryPath);
+      sourcePaths.add(sourcePath);
+    }
 
-    String[] paths =  new String[] { sourcePath };
+    String[] paths = sourcePaths.toArray(new String[sourcePaths.size()]);
 
     File folder = createTree(files);
-    Assert.assertTrue(tryCompile(folder, paths,"-source", "6", "-target", "6"));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
 
-    File srcFile = new File(folder + File.separator + binaryPath);
-    File dstFile = new File(folder + File.separator + "Misnamed.class");
-    dstFile.getParentFile().mkdirs();
-    srcFile.renameTo(dstFile);
+    for (String className : classNameMap.keySet()) {
+      String dstName = classNameMap.get(className).replaceAll("[.]", "/") + ".class";
+      File srcFile = new File(folder + File.separator + nameToBinaryPath.get(className));
+      File dstFile = new File(folder + File.separator + dstName);
+      if (!srcFile.getPath().equals(dstFile.getPath())) {
+        dstFile.getParentFile().mkdirs();
+        srcFile.renameTo(dstFile);
+      }
+    }
 
     for (String file : new FileTree(folder)) {
       if (file.endsWith(".java")) {

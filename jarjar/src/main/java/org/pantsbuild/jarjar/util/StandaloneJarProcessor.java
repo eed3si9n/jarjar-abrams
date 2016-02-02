@@ -34,9 +34,9 @@ public class StandaloneJarProcessor
         JarOutputStream out = new JarOutputStream(buffered);
         Set<String> entries = new HashSet<String>();
         try {
-            EntryStruct struct = new EntryStruct();
             Enumeration<JarEntry> e = in.entries();
             while (e.hasMoreElements()) {
+                EntryStruct struct = new EntryStruct();
                 JarEntry entry = e.nextElement();
                 struct.name = entry.getName();
                 struct.time = entry.getTime();
