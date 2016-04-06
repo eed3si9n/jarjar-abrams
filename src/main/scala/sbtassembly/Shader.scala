@@ -87,8 +87,6 @@ private[sbtassembly] object Shader {
     which always translates class names containing '.' into '/', regardless of OS platform.
     We need to transform any windows file paths in order for jarjar to match them properly and not omit them.
      */
-//    val files = AssemblyUtils.getMappings(dir, Set())
-
     val files = AssemblyUtils.getMappings(dir, Set()).map(f =>
       if (f._2.contains('\\')) (f._1, f._2.replace('\\', '/')) else f)
 
