@@ -250,7 +250,7 @@ public abstract class IntegrationTestBase {
     }
     sb.append("public class ");
     sb.append(className);
-    sb.append(" { /* NOTHING TO SEE HERE */ }\n");
+    sb.append(" { public void test(int paramName) {} }\n"); // exercise ASM 5 handling of MethodParmeters attrtibute
 
     return sb.toString();
   }

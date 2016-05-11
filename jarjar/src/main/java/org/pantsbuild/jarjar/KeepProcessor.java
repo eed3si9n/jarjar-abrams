@@ -30,7 +30,7 @@ class KeepProcessor extends Remapper implements JarProcessor
     private final List<Wildcard> wildcards;
     private final List<String> roots = new ArrayList<String>();
     private final Map<String, Set<String>> depend = new HashMap<String, Set<String>>();
-    
+
     public KeepProcessor(List<Keep> patterns) {
         wildcards = PatternElement.createWildcards(patterns);
     }
@@ -72,7 +72,8 @@ class KeepProcessor extends Remapper implements JarProcessor
                 curSet.remove(name);
             }
         } catch (Exception e) {
-          System.err.println("Error reading " + struct.name + ": " + e.getMessage());
+            System.err.println("Error reading " + struct.name + ": " + e.getMessage());
+            System.exit(-1);
         }
         return true;
     }

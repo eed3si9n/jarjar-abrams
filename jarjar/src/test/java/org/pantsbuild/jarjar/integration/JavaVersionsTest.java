@@ -48,6 +48,15 @@ public class JavaVersionsTest extends IntegrationTestBase {
     entries = getJarEntries(shaded);
     assertTrue("ShadedClass didn't make it into shaded jar (with rename rule).",
         entries.contains("org/pantsbuild/jarjar/ShadedClass.class"));
+
+    // TOOD write a test that demonstrates that KeepProcessor fails.
+    // I can trigger the ASM exception, but that gets caught and logged
+    shaded = shadeJar(jar, null, new String[] {
+         "rule org.pantsbuild.jarjar.SingleClass org.pantsbuild.jarjar.ShadedClass",
+         "keep org.pantsbuild.jarjar.**"
+    });
+    entries = getJarEntries(shaded);
+
   }
 
 
@@ -62,7 +71,11 @@ public class JavaVersionsTest extends IntegrationTestBase {
     String[] sources = {sourcePath};
 
     File folder = createTree(files);
-    assertTrue(tryCompile(folder, sources, "-source", javaVersion, "-target", javaVersion));
+    if (javaVersion != "1.6" && javaVersion != "1.7") {
+      assertTrue(tryCompile(folder, sources, "-source", javaVersion, "-target", javaVersion, "-parameters"));
+    } else {
+      assertTrue(tryCompile(folder, sources, "-source", javaVersion, "-target", javaVersion));
+    }
 
     for (String file : new FileTree(folder)) {
       if (file.endsWith(".java")) {
