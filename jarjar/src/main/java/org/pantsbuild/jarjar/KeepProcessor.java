@@ -73,7 +73,6 @@ class KeepProcessor extends Remapper implements JarProcessor
             }
         } catch (Exception e) {
             System.err.println("Error reading " + struct.name + ": " + e.getMessage());
-            System.exit(-1);
         }
         return true;
     }
