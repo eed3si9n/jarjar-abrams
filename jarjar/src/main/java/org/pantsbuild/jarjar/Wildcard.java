@@ -130,7 +130,8 @@ class Wildcard
           char c = expr.charAt(i);
           if (extra.indexOf(c) >= 0)
               continue;
-          if (!Character.isJavaIdentifierPart(c))
+          // Dash ('-') support added to support with scala packages
+          if (!(Character.isJavaIdentifierPart(c) || c == '-'))
               return false;
       }
       return true;

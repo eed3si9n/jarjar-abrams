@@ -52,6 +52,7 @@ extends TestCase
 
       assertEquals("[Lfoo.example.Object;", remapper.mapValue("[Lorg.example.Object;"));
       assertEquals("foo.example.Object", remapper.mapValue("org.example.Object"));
+      assertEquals("foo.example-withdash.Object", remapper.mapValue("org.example-withdash.Object"));
       assertEquals("foo/example/Object", remapper.mapValue("org/example/Object"));
       assertEquals("foo/example.Object", remapper.mapValue("org/example.Object")); // path match
 
