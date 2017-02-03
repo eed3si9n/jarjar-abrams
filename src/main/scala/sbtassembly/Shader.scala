@@ -18,6 +18,9 @@ case class ShadeRule(shadePattern: ShadePattern, targets: Seq[ShadeTarget] = Seq
   private[sbtassembly] def isApplicableTo(mod: ModuleID): Boolean =
     targets.exists(_.isApplicableTo(mod))
 
+  private[sbtassembly] def isApplicableToAll: Boolean =
+    targets.exists(_.inAll)
+
   private[sbtassembly] def isApplicableToCompiling: Boolean =
     targets.exists(_.inAll) || targets.exists(_.inProject)
 
