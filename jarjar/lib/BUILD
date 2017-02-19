@@ -1,28 +1,28 @@
 jar_library(
   name='asm',
   jars=[
-    jar('org.ow2.asm', 'asm', '5.0.4'),
+    jar('org.ow2.asm', 'asm', '5.2'),
   ]
 )
 
 jar_library(
   name='asm-commons',
   jars=[
-    jar('org.ow2.asm', 'asm-commons', '5.0.4'),
+    jar('org.ow2.asm', 'asm-commons', '5.2'),
   ]
 )
 
 jar_library(
   name='ant',
   jars=[
-    jar('org.apache.ant', 'ant', '1.9.6'),
+    jar('org.apache.ant', 'ant', '1.9.9'),
   ]
 )
 
 jar_library(
   name='maven-plugin-api',
   jars=[
-    jar('org.apache.maven', 'maven-plugin-api', '3.3.3'),
+    jar('org.apache.maven', 'maven-plugin-api', '3.3.9'),
   ]
 )
 
@@ -36,6 +36,6 @@ jar_library(
 jar_library(
   name='commons-lang3',
   jars=[
-    jar('org.apache.commons', 'commons-lang3', '3.4'),
+    jar('org.apache.commons', 'commons-lang3', '3.5'),
   ]
 )
