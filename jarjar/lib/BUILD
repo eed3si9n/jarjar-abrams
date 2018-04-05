@@ -1,14 +1,14 @@
 jar_library(
   name='asm',
   jars=[
-    jar('org.ow2.asm', 'asm', '6.0'),
+    jar('org.ow2.asm', 'asm', '6.1.1'),
   ]
 )
 
 jar_library(
   name='asm-commons',
   jars=[
-    jar('org.ow2.asm', 'asm-commons', '6.0'),
+    jar('org.ow2.asm', 'asm-commons', '6.1.1'),
   ]
 )
 
@@ -36,6 +36,6 @@ jar_library(
 jar_library(
   name='commons-lang3',
   jars=[
-    jar('org.apache.commons', 'commons-lang3', '3.5'),
+    jar('org.apache.commons', 'commons-lang3', '3.7'),
   ]
 )
