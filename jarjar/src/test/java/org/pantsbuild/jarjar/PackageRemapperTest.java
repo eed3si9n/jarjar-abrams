@@ -47,6 +47,8 @@ extends TestCase
       assertUnchangedValue("[Lorg.example.Object;;");
       assertUnchangedValue("[Lorg.example.Obj ct;");
       assertUnchangedValue("org.example/Object");
+      assertUnchangedValue("META-INF/org.example.Object");
+      assertUnchangedValue("META-INF/org.example.package-info");
 
       assertEquals("[Lfoo.example.Object;", remapper.mapValue("[Lorg.example.Object;"));
       assertEquals("foo.example.Object", remapper.mapValue("org.example.Object"));

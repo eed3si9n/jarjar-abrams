@@ -40,7 +40,7 @@ class Wildcard
             throw new IllegalArgumentException("Not a valid package pattern: " + pattern);
         if (pattern.indexOf("***") >= 0)
             throw new IllegalArgumentException("The sequence '***' is invalid in a package pattern");
-        
+
         String regex = pattern;
         regex = replaceAllLiteral(dstar, regex, "(.+?)");
         regex = replaceAllLiteral(star, regex, "([^/]+)");
@@ -121,6 +121,10 @@ class Wildcard
       // See 7.4.1.1 of the Java language spec for discussion.
       if (expr.endsWith("package-info")) {
           expr = expr.substring(0, expr.length() - "package-info".length());
+      }
+      // Allow patterns under META-INF if you want to match multi-release class files.
+      if (expr.startsWith("META-INF/")) {
+          expr = expr.substring("META-INF/".length(), expr.length());
       }
       for (int i = 0, len = expr.length(); i < len; i++) {
           char c = expr.charAt(i);
