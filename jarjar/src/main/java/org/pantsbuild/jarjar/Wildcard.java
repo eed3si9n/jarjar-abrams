@@ -122,15 +122,11 @@ class Wildcard
       if (expr.endsWith("package-info")) {
           expr = expr.substring(0, expr.length() - "package-info".length());
       }
-      // Allow patterns under META-INF if you want to match multi-release class files.
-      if (expr.startsWith("META-INF/")) {
-          expr = expr.substring("META-INF/".length(), expr.length());
-      }
       for (int i = 0, len = expr.length(); i < len; i++) {
           char c = expr.charAt(i);
           if (extra.indexOf(c) >= 0)
               continue;
-          // Dash ('-') support added to support with scala packages
+          // Dash ('-') support added to accommodate class files under META-INF and scala packages.
           if (!(Character.isJavaIdentifierPart(c) || c == '-'))
               return false;
       }
