@@ -35,7 +35,11 @@ abstract public class JarTransformer implements JarProcessor {
             }
 
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
-            reader.accept(transform(w), ClassReader.EXPAND_FRAMES);
+            try {
+                reader.accept(transform(w), ClassReader.EXPAND_FRAMES);
+            } catch (Exception e) {
+                throw new Error("Unable to transform " + struct.name, e);
+            }
             struct.data = w.toByteArray();
             struct.name = pathFromName(w.getClassName());
         }
