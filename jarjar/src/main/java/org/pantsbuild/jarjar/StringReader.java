@@ -24,7 +24,7 @@ abstract class StringReader extends ClassVisitor
     private String className;
 
     public StringReader() {
-        super(Opcodes.ASM6);
+        super(Opcodes.ASM7);
     }
     
     abstract public void visitString(String className, String value, int line);
@@ -42,7 +42,7 @@ abstract class StringReader extends ClassVisitor
 
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
         handleObject(value);
-        return new FieldVisitor(Opcodes.ASM6){
+        return new FieldVisitor(Opcodes.ASM7){
             @Override
             public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 return StringReader.this.visitAnnotation(desc, visible);
@@ -52,7 +52,7 @@ abstract class StringReader extends ClassVisitor
     
     @Override
     public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-        return new AnnotationVisitor(Opcodes.ASM6) {
+        return new AnnotationVisitor(Opcodes.ASM7) {
             @Override
             public void visit(String name, Object value) {
                 handleObject(value);
@@ -71,7 +71,7 @@ abstract class StringReader extends ClassVisitor
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc,
             String signature, String[] exceptions) {
-        MethodVisitor mv = new MethodVisitor(Opcodes.ASM6){
+        MethodVisitor mv = new MethodVisitor(Opcodes.ASM7){
             @Override
             public void visitLdcInsn(Object cst) {
                 handleObject(cst);

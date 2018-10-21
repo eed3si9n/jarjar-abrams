@@ -1,14 +1,14 @@
 jar_library(
   name='asm',
   jars=[
-    jar('org.ow2.asm', 'asm', '6.2'),
+    jar('org.ow2.asm', 'asm', '7.0-beta'),
   ]
 )
 
 jar_library(
   name='asm-commons',
   jars=[
-    jar('org.ow2.asm', 'asm-commons', '6.2'),
+    jar('org.ow2.asm', 'asm-commons', '7.0-beta'),
   ]
 )
 
