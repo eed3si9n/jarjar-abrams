@@ -28,7 +28,7 @@ abstract public class JarTransformer implements JarProcessor {
             ClassReader reader;
             try {
                 reader = new ClassReader(struct.data);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 System.err.println("Unable to read bytecode from " + struct.name);
                 e.printStackTrace();
                 return true;
@@ -37,8 +37,8 @@ abstract public class JarTransformer implements JarProcessor {
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
             try {
                 reader.accept(transform(w), ClassReader.EXPAND_FRAMES);
-            } catch (Exception e) {
-                throw new Error("Unable to transform " + struct.name, e);
+            } catch (RuntimeException e) {
+                throw new IOException("Unable to transform " + struct.name, e);
             }
             struct.data = w.toByteArray();
             struct.name = pathFromName(w.getClassName());
