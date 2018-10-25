@@ -3,6 +3,7 @@ junit_tests(
   sources=globs('*.java'),
   resources=[
     'src/test:generics-precompiled',
+    ':method-rewriter-input',
   ],
   dependencies=[
     'lib:asm',
@@ -13,3 +14,7 @@ junit_tests(
   ]
 )
 
+resources(
+  name='method-rewriter-input',
+  sources=['BigtableIO$Write.class']
+)

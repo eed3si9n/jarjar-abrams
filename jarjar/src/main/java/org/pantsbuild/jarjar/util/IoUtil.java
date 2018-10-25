@@ -25,7 +25,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-class IoUtil {
+// Visible for testing
+public class IoUtil {
     private IoUtil() {}
 
     public static void pipe(InputStream is, OutputStream out, byte[] buf) throws IOException {
