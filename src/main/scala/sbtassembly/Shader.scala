@@ -98,6 +98,7 @@ private[sbtassembly] object Shader {
       entry.data = IO.readBytes(f._1)
       entry.name = f._2
       entry.time = -1
+      entry.skipTransform = false
       IO.delete(f._1)
       if (proc.process(entry)) {
         IO.write(dir / entry.name, entry.data)
