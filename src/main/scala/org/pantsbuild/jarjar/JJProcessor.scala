@@ -9,8 +9,8 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 /**
- * Creates a new JJProcessor, which automatically generates the standard zap, keep, remap,
- * etc processors.
+ * Creates a new JJProcessor, which automatically generates the standard zap, keep, remap, etc processors.
+ * This is a copy of the MainProcessor in JarJar with an added ScalaSigProcessor
  *
  * @param patterns               List of rules to parse.
  * @param verbose                Whether to verbosely log information.
@@ -39,6 +39,7 @@ class JJProcessor(val patterns: Seq[PatternElement], val verbose: Boolean, val s
   processors += new ZapProcessor(zapList.asJava)
   processors += misplacedClassProcessor
   processors += new JarTransformerChain(Array[RemappingClassTransformer](new RemappingClassTransformer(pr)))
+  processors += new ScalaSigProcessor(ruleList)
   processors += new MethodSignatureProcessor(pr)
   processors += new ResourceProcessor(pr)
   val chain = new JarProcessorChain(processors.toArray)
@@ -64,7 +65,7 @@ class JJProcessor(val patterns: Seq[PatternElement], val verbose: Boolean, val s
 
   /**
    *
-   * @param struct
+   * @param struct entry struct to process
    * @return <code>true</code> if the entry is to include in the output jar
    * @throws IOException
    */
