@@ -106,15 +106,13 @@ class EntryTable(var entries: mutable.Buffer[TableEntry]) {
   def renameEntries(rules: Seq[Rule]): Unit = {
     val wildcards = PatternElement.createWildcards(rules.asJava).asScala
     def replaceHelper(value: String): Option[String] = {
-      wildcards.flatMap {
+      val result = wildcards.flatMap {
         wc =>
-          if (value.contains('/')) {
-            Option(wc.replace(value))
-          } else {
-            // Hack to replace the package object name.
-            Option(wc.replace(value + "/")).map(_.dropRight(1))
-          }
+          // Hack to replace the package object name.
+          Option(wc.replace(value)).orElse(Option(wc.replace(value + "/")).map(_.dropRight(1)))
       }.headOption
+
+      result
     }
 
     entries.zipWithIndex.foreach {
