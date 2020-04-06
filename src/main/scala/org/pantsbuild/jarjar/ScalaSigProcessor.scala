@@ -5,6 +5,7 @@ import org.pantsbuild.jarjar.util.{EntryStruct, JarProcessor}
 
 class ScalaSigProcessor(rules: Seq[Rule]) extends JarProcessor {
   override def process(struct: EntryStruct): Boolean = {
+
     if (!struct.name.endsWith(".class") || struct.skipTransform) true
     else {
       val classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
@@ -14,6 +15,5 @@ class ScalaSigProcessor(rules: Seq[Rule]) extends JarProcessor {
       struct.data = classWriter.toByteArray
       true
     }
-
   }
 }
