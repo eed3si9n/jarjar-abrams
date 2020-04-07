@@ -39,7 +39,24 @@ class JJProcessor(val patterns: Seq[PatternElement], val verbose: Boolean, val s
   processors += new ZapProcessor(zapList.asJava)
   processors += misplacedClassProcessor
   processors += new JarTransformerChain(Array[RemappingClassTransformer](new RemappingClassTransformer(pr)))
-  processors += new ScalaSigProcessor(ruleList)
+
+  val renamer: String => Option[String] = {
+    val wildcards = PatternElement.createWildcards(ruleList.asJava).asScala
+
+    value: String => {
+      val result = wildcards.flatMap {
+        wc =>
+          val slashed = value.replace('.', '/') // The jarjar wildcards expect slashes instead of dots
+          // Hack to replace the package object name.
+          val renamed = Option(wc.replace(slashed)).orElse(Option(wc.replace(slashed + "/")).map(_.dropRight(1)))
+          renamed.map(_.replace('/', '.'))  // Unslash
+      }.headOption
+
+      result
+    }
+  }
+
+  processors += new ScalaSigProcessor(renamer)
   processors += new MethodSignatureProcessor(pr)
   processors += new ResourceProcessor(pr)
   val chain = new JarProcessorChain(processors.toArray)
