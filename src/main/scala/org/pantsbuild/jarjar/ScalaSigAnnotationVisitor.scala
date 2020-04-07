@@ -1,36 +1,92 @@
 package org.pantsbuild.jarjar
 
+import java.io.ByteArrayOutputStream
 import org.objectweb.asm.{AnnotationVisitor, ClassVisitor, Opcodes}
-
 import scala.reflect.internal.pickling.ByteCodecs
 
 class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, renamer: String => Option[String]) extends ClassVisitor(Opcodes.ASM7, cv) {
 
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
-    if (descriptor == "Lscala/reflect/ScalaSignature;") {
-      new ScalaSigAnnotationVisitor(fileName, super.visitAnnotation(descriptor, visible), renamer)
-    } else if (descriptor == "Lscala/reflect/ScalaLongSignature;") {
-      throw new RuntimeException("Shading ScalaLongSignature not implemented")
+    if (descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;") {
+      new ScalaSigAnnotationVisitor(fileName, descriptor, visible, cv, renamer)
     } else {
       super.visitAnnotation(descriptor, visible)
     }
   }
 }
 
-class ScalaSigAnnotationVisitor(fileName: String, av: AnnotationVisitor, renamer: String => Option[String]) extends AnnotationVisitor(Opcodes.ASM7, av) {
+class ScalaSigAnnotationVisitor(
+  fileName: String,
+  descriptor: String,
+  visible: Boolean,
+  cv: ClassVisitor,
+  renamer: String => Option[String]
+) extends AnnotationVisitor(Opcodes.ASM7) {
+
+  private val MaxStringSizeInBytes = 65535
+  private val annotationBytes: ByteArrayOutputStream = new ByteArrayOutputStream()
 
   override def visit(name: String, value: Any): Unit = {
-
+    // Append all the annotation bytes, whether is is a long or normal signature
     val bytes = value.asInstanceOf[String].getBytes("UTF-8")
-    val len = ByteCodecs.decode(bytes)
+    annotationBytes.write(bytes)
+  }
 
-    val table = EntryTable.fromBytes(bytes.slice(0, len))
+  override def visitArray(name: String): AnnotationVisitor = {
+    // Array values are handled by this same visitor
+    this
+  }
+
+  override def visitEnd(): Unit = {
+    val encoded = annotationBytes.toByteArray
+    val len = ByteCodecs.decode(encoded)
+
+    val table = EntryTable.fromBytes(encoded.slice(0, len))
     table.renameEntries(renamer)
 
-    val newBytes = table.toBytes
-    val newValue = new String(ubytesToCharArray(mapToNextModSevenBits(scala.reflect.internal.pickling.ByteCodecs.encode8to7(newBytes))))
+    val chars = ubytesToCharArray(mapToNextModSevenBits(scala.reflect.internal.pickling.ByteCodecs.encode8to7(table.toBytes)))
+    val utf8EncodedLength = chars.foldLeft(0) { (count, next) => if (next == 0) count + 2 else count + 1}
 
-    super.visit(name, newValue)
+    if (utf8EncodedLength > MaxStringSizeInBytes) {
+      // Encode as ScalaLongSignature containing an array of strings
+      val av = cv.visitAnnotation("Lscala/reflect/ScalaLongSignature;", visible)
+
+      def nextChunk(from: Int): Array[Char] = {
+        if (from == chars.length) {
+          Array.empty
+        } else {
+          var size = 0
+          var index = 0
+
+          while(size < MaxStringSizeInBytes && from + index < chars.length) {
+            val c = chars(from + index)
+            size += (if (c == 0) 2 else 1)
+            index += 1
+          }
+
+          chars.slice(from, from + index)
+        }
+      }
+
+      // Write the array of strings as chunks of max MaxStringSizeInBytes bytes
+      val arrayVisitor = av.visitArray("bytes")
+
+      var offset = 0
+      var chunk = nextChunk(offset)
+      while(chunk.nonEmpty) {
+        arrayVisitor.visit("bytes", new String(chunk))
+        offset += chunk.length
+        chunk = nextChunk(offset)
+      }
+      arrayVisitor.visitEnd()
+
+      av.visitEnd()
+    } else {
+      // Encode as ScalaSignature containing a single string
+      val av = cv.visitAnnotation("Lscala/reflect/ScalaSignature;", visible)
+      av.visit("bytes", new String(chars))
+      av.visitEnd()
+    }
   }
 
   // These encoding functions are copied from scala.reflect.internal.AnnotationInfos.ScalaSigBytes
@@ -55,17 +111,5 @@ class ScalaSigAnnotationVisitor(fileName: String, av: AnnotationVisitor, renamer
       idx += 1
     }
     ca
-  }
-
-  override def visitAnnotation(name: String, descriptor: String): AnnotationVisitor = {
-    super.visitAnnotation(name, descriptor)
-  }
-
-  override def visitArray(name: String): AnnotationVisitor = {
-    super.visitArray(name)
-  }
-
-  override def visitEnd(): Unit = {
-    super.visitEnd()
   }
 }
