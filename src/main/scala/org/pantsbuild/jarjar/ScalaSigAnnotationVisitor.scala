@@ -4,11 +4,11 @@ import org.objectweb.asm.{AnnotationVisitor, ClassVisitor, Opcodes}
 
 import scala.reflect.internal.pickling.ByteCodecs
 
-class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, rules: Seq[Rule]) extends ClassVisitor(Opcodes.ASM7, cv) {
+class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, renamer: String => Option[String]) extends ClassVisitor(Opcodes.ASM7, cv) {
 
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
     if (descriptor == "Lscala/reflect/ScalaSignature;") {
-      new ScalaSigAnnotationVisitor(fileName, super.visitAnnotation(descriptor, visible), rules)
+      new ScalaSigAnnotationVisitor(fileName, super.visitAnnotation(descriptor, visible), renamer)
     } else if (descriptor == "Lscala/reflect/ScalaLongSignature;") {
       throw new RuntimeException("Shading ScalaLongSignature not implemented")
     } else {
@@ -17,7 +17,7 @@ class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, rules: Seq[Rule])
   }
 }
 
-class ScalaSigAnnotationVisitor(fileName: String, av: AnnotationVisitor, rules: Seq[Rule]) extends AnnotationVisitor(Opcodes.ASM7, av) {
+class ScalaSigAnnotationVisitor(fileName: String, av: AnnotationVisitor, renamer: String => Option[String]) extends AnnotationVisitor(Opcodes.ASM7, av) {
 
   override def visit(name: String, value: Any): Unit = {
 
@@ -25,7 +25,7 @@ class ScalaSigAnnotationVisitor(fileName: String, av: AnnotationVisitor, rules: 
     val len = ByteCodecs.decode(bytes)
 
     val table = EntryTable.fromBytes(bytes.slice(0, len))
-    table.renameEntries(rules)
+    table.renameEntries(renamer)
 
     val newBytes = table.toBytes
     val newValue = new String(ubytesToCharArray(mapToNextModSevenBits(scala.reflect.internal.pickling.ByteCodecs.encode8to7(newBytes))))

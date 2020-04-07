@@ -2,11 +2,16 @@ package org.pantsbuild.jarjar
 
 import java.io.ByteArrayOutputStream
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.reflect.internal.pickling.PickleFormat
 
-class EntryTable(val majorVersion: Int, minorVersion: Int, var entries: mutable.Buffer[TaggedEntry]) {
+/**
+ * Mutable table of tagged entries
+ * @param majorVersion major table version
+ * @param minorVersion minor table version
+ * @param entries initial table entries
+ */
+class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[TaggedEntry]) {
   // Mapping of known TermName or TypeNames to their index in the table.
   private val nameIndices: mutable.Map[NameEntry, Int] = mutable.HashMap(
     entries.zipWithIndex.collect {
@@ -14,50 +19,50 @@ class EntryTable(val majorVersion: Int, minorVersion: Int, var entries: mutable.
     }:_*
   )
 
-  def renameEntries(rules: Seq[Rule]): Unit = {
-    val wildcards = PatternElement.createWildcards(rules.asJava).asScala
-    def replaceHelper(value: String): Option[String] = {
-      val result = wildcards.flatMap {
-        wc =>
-          // Hack to replace the package object name.
-          Option(wc.replace(value)).orElse(Option(wc.replace(value + "/")).map(_.dropRight(1)))
-      }.headOption
-
-      result
-    }
+  /**
+   * Rename term and type entries in this table according to the renamer function.
+   * A name or type is referred to by a Ref entry. The existing ref entries are reused to references to them will remain intact.
+   * Unused entries will not be removed from the table.
+   *
+   * @param renamer renames a fully qualified type or term name or return None if it does not match.
+   */
+  def renameEntries(renamer: String => Option[String]): Unit = {
 
     entries.zipWithIndex.collect {
       case (ref: RefEntry, index) =>
         entries(ref.nameRef) match {
           case nameEntry: NameEntry =>
-            resolveRef(ref).foreach { name =>
-              replaceHelper(name).foreach { replaced =>
+            for {
+              fqName <- resolveRef(ref)
+              renamed <- renamer(fqName)
+            } {
+              val parts = renamed.split('.')
 
-                val parts = replaced.split('/')
-
-                val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
-                  val nameIndex = getOrInsertTermName(NameEntry(PickleFormat.TERMname, part))
-                  val nextOwner = appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
-                  Some(nextOwner)
-                }
-
-                entries(index) = ref.copy(nameRef = getOrInsertTermName(nameEntry.copy(name = parts.last)), ownerRef = myOwner)
+              val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
+                val nameIndex = getOrAppendNameEntry(NameEntry(PickleFormat.TERMname, part))
+                val nextOwner = appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
+                Some(nextOwner)
               }
+
+              entries(index) = ref.copy(nameRef = getOrAppendNameEntry(nameEntry.copy(name = parts.last)), ownerRef = myOwner)
             }
+
           case other =>
             throw new RuntimeException(s"Ref entry does not point to a name but to a ${other.tag}")
         }
     }
   }
 
-  private def getOrInsertTermName(name: NameEntry): Int = {
+  // Return existing name entry or append a new one.
+  private def getOrAppendNameEntry(name: NameEntry): Int = {
     nameIndices.getOrElse(name, appendEntry(name))
   }
 
-  private def appendEntry(name: TaggedEntry): Int = {
+  private def appendEntry(entry: TaggedEntry): Int = {
     val index = entries.size
-    entries += name
-    name match {
+    entries += entry
+
+    entry match {
       case name: NameEntry =>
         nameIndices.put(name, index)
       case _ => // NoOp
@@ -66,6 +71,7 @@ class EntryTable(val majorVersion: Int, minorVersion: Int, var entries: mutable.
     index
   }
 
+  // Resolves a ref into a fully qualified name
   def resolveRef(extMod: RefEntry): Option[String] = {
 
     val myName = entries(extMod.nameRef) match {
@@ -80,7 +86,7 @@ class EntryTable(val majorVersion: Int, minorVersion: Int, var entries: mutable.
           case name: NameEntry =>
             Some(s"$name/$myName")
           case mod: RefEntry =>
-            resolveRef(mod).map(p => s"$p/$myName")
+            resolveRef(mod).map(p => s"$p.$myName")
           case raw: RawEntry if raw.tag == PickleFormat.NONEsym =>
             None
           case raw: RawEntry =>
