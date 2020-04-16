@@ -1,4 +1,4 @@
-package org.pantsbuild.jarjar
+package sbtassembly.scalasig
 
 import java.io.ByteArrayOutputStream
 
@@ -18,6 +18,12 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
       case (entry: NameEntry, index) => (entry, index)
     }:_*
   )
+
+  /**
+   * Return the current table entries as an immutable seq.
+   * @return table entries
+   */
+  def toSeq: Seq[TaggedEntry] = entries.toVector
 
   /**
    * Rename term and type entries in this table according to the renamer function.

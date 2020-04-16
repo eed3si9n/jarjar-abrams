@@ -1,4 +1,4 @@
-package org.pantsbuild.jarjar
+package sbtassembly.scalasig
 
 import java.io.ByteArrayOutputStream
 
@@ -12,8 +12,8 @@ trait TaggedEntry {
 /**
  * Unparsed entry
  */
-case class RawEntry(tag: Int, bytes: Array[Byte]) extends TaggedEntry {
-  override def toBytes: Array[Byte] = bytes
+case class RawEntry(tag: Int, bytes: Seq[Byte]) extends TaggedEntry {
+  override def toBytes: Array[Byte] = bytes.toArray
 }
 
 /**

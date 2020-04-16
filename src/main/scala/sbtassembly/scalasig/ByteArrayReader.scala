@@ -1,4 +1,4 @@
-package org.pantsbuild.jarjar
+package sbtassembly.scalasig
 
 // Utility class to read the content of a single table entry
 class ByteArrayReader(bytes: Array[Byte]) extends Nat.Reader {
