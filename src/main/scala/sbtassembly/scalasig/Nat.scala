@@ -1,4 +1,4 @@
-package org.pantsbuild.jarjar
+package sbtassembly.scalasig
 
 /**
  * Utility methods for reading and writing nat encoded numbers.

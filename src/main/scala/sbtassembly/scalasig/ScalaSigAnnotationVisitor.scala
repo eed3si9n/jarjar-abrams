@@ -1,14 +1,16 @@
-package org.pantsbuild.jarjar
+package sbtassembly.scalasig
 
 import java.io.ByteArrayOutputStream
+
 import org.objectweb.asm.{AnnotationVisitor, ClassVisitor, Opcodes}
+
 import scala.reflect.internal.pickling.ByteCodecs
 
-class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, renamer: String => Option[String]) extends ClassVisitor(Opcodes.ASM7, cv) {
+class ScalaSigClassVisitor(cv: ClassVisitor, renamer: String => Option[String]) extends ClassVisitor(Opcodes.ASM7, cv) {
 
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
     if (descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;") {
-      new ScalaSigAnnotationVisitor(fileName, descriptor, visible, cv, renamer)
+      new ScalaSigAnnotationVisitor(visible, cv, renamer)
     } else {
       super.visitAnnotation(descriptor, visible)
     }
@@ -16,8 +18,6 @@ class ScalaSigClassVisitor(fileName: String, cv: ClassVisitor, renamer: String =
 }
 
 class ScalaSigAnnotationVisitor(
-  fileName: String,
-  descriptor: String,
   visible: Boolean,
   cv: ClassVisitor,
   renamer: String => Option[String]
@@ -44,7 +44,7 @@ class ScalaSigAnnotationVisitor(
     val table = EntryTable.fromBytes(encoded.slice(0, len))
     table.renameEntries(renamer)
 
-    val chars = ubytesToCharArray(mapToNextModSevenBits(scala.reflect.internal.pickling.ByteCodecs.encode8to7(table.toBytes)))
+    val chars = ubytesToCharArray(mapToNextModSevenBits(ByteCodecs.encode8to7(table.toBytes)))
     val utf8EncodedLength = chars.foldLeft(0) { (count, next) => if (next == 0) count + 2 else count + 1}
 
     if (utf8EncodedLength > MaxStringSizeInBytes) {

@@ -2,7 +2,7 @@ package sbtassembly
 
 import java.io.File
 
-import org.pantsbuild.jarjar._
+import org.pantsbuild.jarjar.{JJProcessor, _}
 import org.pantsbuild.jarjar.util.EntryStruct
 import sbt._
 
