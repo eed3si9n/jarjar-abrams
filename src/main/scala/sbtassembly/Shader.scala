@@ -2,9 +2,8 @@ package sbtassembly
 
 import java.io.File
 
-import org.pantsbuild.jarjar._
+import org.pantsbuild.jarjar.{JJProcessor, _}
 import org.pantsbuild.jarjar.util.EntryStruct
-
 import sbt._
 
 case class ShadeRule(shadePattern: ShadePattern, targets: Seq[ShadeTarget] = Seq()) {
@@ -83,7 +82,7 @@ private[sbtassembly] object Shader {
       case _ => Nil
     }}
 
-    val proc = JJProcessor(jjrules, verbose = level == Level.Debug, true)
+    val proc = new JJProcessor(jjrules, verbose = level == Level.Debug, true, null)
 
     /*
     jarjar MisplacedClassProcessor class transforms byte[] to a class using org.objectweb.asm.ClassReader.getClassName
@@ -104,7 +103,7 @@ private[sbtassembly] object Shader {
         IO.write(dir / entry.name, entry.data)
       }
     }
-    val excludes = proc.getExcludes()
+    val excludes = proc.getExcludes
     excludes.foreach(exclude => IO.delete(dir / exclude))
   }
 }
