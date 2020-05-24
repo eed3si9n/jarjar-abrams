@@ -2,9 +2,14 @@ import Dependencies._
 
 ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
+ThisBuild / organizationName := "eed3si9n"
+ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
 ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / description := "utility to shade Scala libraries"
-ThisBuild / licenses := Seq("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / licenses := Seq(
+  "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
+)
+ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
 
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
@@ -50,3 +55,27 @@ lazy val sbtplugin = project
     }
     scriptedBufferLog := false
   })
+
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/eed3si9n/jarjar-abrams"),
+    "scm:git@github.com:eed3si9n/jarjar-abrams.git"
+  )
+)
+ThisBuild / developers := List(
+  Developer(
+    id = "eed3si9n",
+    name = "Eugene Yokota",
+    email = "@eed3si9n",
+    url = url("http://eed3si9n.com")
+  )
+)
+ThisBuild / pomIncludeRepository := { _ =>
+  false
+}
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+ThisBuild / publishMavenStyle := true
