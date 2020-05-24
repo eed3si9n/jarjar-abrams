@@ -3,7 +3,7 @@ dist: xenial
 language: scala
 
 script:
-  - sbt "+test" "scripted"
+  - sbt "+test" "publishLocal;scripted"
 
 before_cache:
   - find $HOME/.cache/coursier/v1 -name "ivydata-*.properties" -delete
