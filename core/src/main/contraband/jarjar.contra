@@ -1,0 +1,46 @@
+package com.eed3si9n.jarjarabrams
+@target(Scala)
+
+type ShadeRule {
+  shadePattern: com.eed3si9n.jarjarabrams.ShadePattern!
+  targets: [ShadeTarget]
+
+  #x def inAll: ShadeRule = this.withTargets(targets :+ ShadeTarget.inAll)
+  #x def inProject: ShadeRule = this.withTargets(targets :+ ShadeTarget.inProject)
+  #x def inModuleCoordinates(moduleId: ModuleCoordinate*): ShadeRule =
+  #x   this.withTargets(targets ++ (moduleId.toSeq map ShadeTarget.inModuleCoordinate))
+
+  #x def isApplicableToAll: Boolean = targets.exists(_.inAll)
+  #x def isApplicableToCompiling: Boolean = targets.exists(_.inAll) || targets.exists(_.inProject)
+  #x def isApplicableTo(mod: ModuleCoordinate): Boolean =
+  #x   targets.exists(_.inAll) || targets.exists(_.isApplicableTo(mod))
+
+  #xcompanion import ShadePattern._
+  #xcompanion def rename(patterns: (String, String)*): ShadePattern = Rename(patterns.toSeq.toList)
+  #xcompanion def moveUnder(from: String, to: String): ShadePattern = rename(s"$from.**" -> s"$to.$from.@1")
+  #xcompanion def zap(patterns: String*): ShadePattern = Zap(patterns.toSeq.toList)
+  #xcompanion def keep(patterns: String*): ShadePattern = Keep(patterns.toSeq.toList)
+}
+
+## This is a categorization to denote which rules are applied to what.
+## Used internally in sbt-assembly. There's nothing in Shader.shadeDirectory
+## that would enforce these target categorization.
+type ShadeTarget {
+  inAll: Boolean! = false
+  inProject: Boolean! = false
+  moduleId: ModuleCoordinate
+
+  #x def isApplicableTo(mod: ModuleCoordinate): Boolean = inAll || (moduleId == Some(mod))
+
+  #xcompanion private[jarjarabrams] def inAll: ShadeTarget = ShadeTarget(inAll = true, inProject = false, None)
+  #xcompanion private[jarjarabrams] def inProject: ShadeTarget = ShadeTarget(inAll = false, inProject = true, None)
+  #xcompanion private[jarjarabrams] def inModuleCoordinate(moduleId: ModuleCoordinate): ShadeTarget =
+  #xcompanion   ShadeTarget(inAll = false, inProject = false, moduleId = Some(moduleId))
+}
+
+## stand-in for sbt's ModuleID
+type ModuleCoordinate {
+  organization: String!
+  name: String!
+  version: String!
+}
