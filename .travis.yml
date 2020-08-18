@@ -1,3 +1,6 @@
+version: ~> 1.0 # needed for imports
+import: scala/scala-dev:travis/default.yml
+
 dist: xenial
 
 language: scala
@@ -5,14 +8,9 @@ language: scala
 script:
   - sbt "+test" "publishLocal;scripted"
 
-before_cache:
-  - find $HOME/.cache/coursier/v1 -name "ivydata-*.properties" -delete
-  - find $HOME/.ivy2              -name "ivydata-*.properties" -delete
-  - find $HOME/.sbt               -name "*.lock"               -delete
+env: ADOPTOPENJDK=11
 
-cache:
-  directories:
-    - $HOME/.cache/coursier/v1
-    - $HOME/.ivy2/cache
-    - $HOME/.sbt/boot
-    - $HOME/.jabba
+matrix:
+  include:
+  - env: ADOPTOPENJDK=8
+  - env: ADOPTOPENJDK=11
