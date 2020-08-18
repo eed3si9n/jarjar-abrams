@@ -4,6 +4,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.file.{ Files, Path, StandardOpenOption }
 import org.pantsbuild.jarjar.{ JJProcessor, _ }
 import org.pantsbuild.jarjar.util.EntryStruct
+import com.eed3si9n.jarjarabrams.Utils.readAllBytes
 
 object Shader {
   def shadeDirectory(
@@ -18,7 +19,7 @@ object Shader {
     newMappings.foreach { case (inputStream, mapping) =>
       val out = dir.resolve(mapping)
       if (!Files.exists(out.getParent)) Files.createDirectories(out.getParent)
-      Files.write(out, inputStream.readAllBytes(), StandardOpenOption.CREATE)
+      Files.write(out, readAllBytes(inputStream), StandardOpenOption.CREATE)
     }
   }
 
@@ -63,7 +64,7 @@ object Shader {
       mappings.map(f => if (f._2.contains('\\')) (f._1, f._2.replace('\\', '/')) else f)
     val shadedInputStreams = sanitizedMappings.flatMap { f =>
       val entry = new EntryStruct
-      entry.data = f._1.readAllBytes()
+      entry.data = readAllBytes(f._1)
       entry.name = f._2
       entry.time = -1
       entry.skipTransform = false
