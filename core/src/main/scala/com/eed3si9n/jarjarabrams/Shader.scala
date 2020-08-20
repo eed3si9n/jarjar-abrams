@@ -1,10 +1,8 @@
 package com.eed3si9n.jarjarabrams
 
-import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.file.{ Files, Path, StandardOpenOption }
 import org.pantsbuild.jarjar.{ JJProcessor, _ }
 import org.pantsbuild.jarjar.util.EntryStruct
-import com.eed3si9n.jarjarabrams.Utils.readAllBytes
 
 object Shader {
   def shadeDirectory(
@@ -13,39 +11,22 @@ object Shader {
       mappings: Seq[(Path, String)],
       verbose: Boolean
   ): Unit = {
-    val mappingBytes = mappings.filter(x => !Files.isDirectory(x._1)).map(x => Files.readAllBytes(x._1) -> x._2)
-    val shader = bytcodeShader(rules, verbose)
-    val newMappings = mappingBytes.flatMap(mapping => shader(mapping._1, mapping._2))
-    mappings.filterNot(_._1.toFile.isDirectory).foreach(f => Files.delete(f._1))
-    newMappings.foreach { case (bytes, mapping) =>
+    val shader = shadeByteCode(rules, verbose)
+
+    for {
+      (path, name) <- mappings.iterator
+      if !Files.isDirectory(path)
+      content = Files.readAllBytes(path)
+      (bytes, mapping) <- shader(content, name).iterator
+    } {
+      Files.delete(path)
       val out = dir.resolve(mapping)
-      if (!Files.exists(out.getParent)) Files.createDirectories(out.getParent)
+      Files.createDirectories(out.getParent)
       Files.write(out, bytes, StandardOpenOption.CREATE)
     }
   }
 
-  def shadeInputStreams(
-      rules: Seq[ShadeRule],
-      mappings: Seq[(InputStream, String)],
-      verbose: Boolean
-  ): Seq[(InputStream, String)] = {
-    val shader = inputStreamShader(rules, verbose)
-    mappings.flatMap { case (inputStream, mapping) => shader(inputStream, mapping) }
-  }
-
-  def inputStreamShader(
-      rules: Seq[ShadeRule],
-      verbose: Boolean
-  ): (InputStream, String) => Option[(InputStream, String)] =
-    (inputStream, mapping) =>
-      if (rules.isEmpty) Some(inputStream -> mapping)
-      else {
-        bytcodeShader(rules, verbose)(readAllBytes(inputStream), mapping).map { case (bytes, newMapping) =>
-          new ByteArrayInputStream(bytes) { override def close(): Unit = inputStream.close() } -> newMapping
-        }
-      }
-
-  def bytcodeShader(
+  def shadeByteCode(
     rules: Seq[ShadeRule],
     verbose: Boolean
   ): (Array[Byte], String) => Option[(Array[Byte], String)] =
@@ -79,7 +60,7 @@ object Shader {
       val proc = new JJProcessor(jjrules, verbose, true, null)
       val excludes = proc.getExcludes
 
-      { (bytes, mapping) =>
+      (bytes, mapping) =>
         /*
         jarjar MisplacedClassProcessor class transforms byte[] to a class using org.objectweb.asm.ClassReader.getClassName
         which always translates class names containing '.' into '/', regardless of OS platform.
@@ -91,11 +72,10 @@ object Shader {
         entry.name = sanitizedMapping
         entry.time = -1
         entry.skipTransform = false
-        val shadedInputStream =
-          if (proc.process(entry)) Some(entry.data -> entry.name)
-          else None
-        shadedInputStream.filterNot(a => excludes.contains(a._2))
-      }
+        if (!excludes.contains(entry.name) && proc.process(entry))
+          Some(entry.data -> entry.name)
+        else
+          None
     }
 }
 
