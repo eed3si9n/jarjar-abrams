@@ -56,6 +56,18 @@ lazy val sbtplugin = project
     scriptedBufferLog := false
   })
 
+
+lazy val toShade = (project in file("some-random-library"))
+  .settings(
+    // same base settings as the scripted test
+    organization := "com.example",
+    name := "some-random-library",
+    version := "0.1.0-SNAPSHOT",
+    scalaVersion := "2.13.1",
+
+    publish := {}
+  )
+
 ThisBuild / scmInfo := Some(
   ScmInfo(
     url("https://github.com/eed3si9n/jarjar-abrams"),
