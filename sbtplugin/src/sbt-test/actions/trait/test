@@ -1,0 +1,4 @@
+# > shadedLibrary/publishLocal
+> show shadedLibrary/makePom
+
+> use/run

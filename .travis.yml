@@ -6,7 +6,7 @@ dist: xenial
 language: scala
 
 script:
-  - sbt "+test" "publishLocal;scripted"
+  - sbt "+test" "publishLocal; toShade/publishLocal ;scripted"
 
 env: ADOPTOPENJDK=11
 
