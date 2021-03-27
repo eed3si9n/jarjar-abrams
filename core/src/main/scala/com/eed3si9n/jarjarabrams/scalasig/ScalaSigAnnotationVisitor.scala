@@ -27,6 +27,7 @@ class ScalaSigAnnotationVisitor(
 
   private val MaxStringSizeInBytes = 65535
   private val annotationBytes: ByteArrayOutputStream = new ByteArrayOutputStream()
+  private var hasWrittenAnnotation = false
 
   override def visit(name: String, value: Any): Unit = {
     // Append all the annotation bytes, whether is is a long or normal signature
@@ -40,6 +41,15 @@ class ScalaSigAnnotationVisitor(
   }
 
   override def visitEnd(): Unit = {
+    if (!hasWrittenAnnotation) {
+      // This method is called as many times as visit() was called,
+      // but we only want to write the annotation once
+      rewriteAnnotation()
+      hasWrittenAnnotation = true
+    }
+  }
+
+  def rewriteAnnotation(): Unit = {
     val encoded = annotationBytes.toByteArray
     val len = ByteCodecs.decode(encoded)
 
