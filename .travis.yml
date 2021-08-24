@@ -15,7 +15,7 @@ install:
     chmod +x $HOME/sbt && sudo mv $HOME/sbt /usr/local/bin/sbt
 
 script:
-  - sbt -v "+test" "publishLocal;scripted"
+  - sbt -v "jarjar/publishLocal" "+test" "publishLocal;scripted"
 
 matrix:
   include:
