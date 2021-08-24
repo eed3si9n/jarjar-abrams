@@ -4,12 +4,30 @@ ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
 ThisBuild / organizationName := "eed3si9n"
 ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
-ThisBuild / version := "0.1.1-SNAPSHOT"
+ThisBuild / version := "0.3.2-SNAPSHOT"
 ThisBuild / description := "utility to shade Scala libraries"
 ThisBuild / licenses := Seq(
   "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
 )
 ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
+
+lazy val jarjar = project
+  .in(file("./jarjar"))
+  .settings(nocomma {
+    name := "jarjar"
+    version := "1.7.3-SNAPSHOT"
+    crossPaths := false
+    autoScalaLibrary := false
+    libraryDependencies ++= Seq(
+      "org.ow2.asm" % "asm" % "7.0",
+      "org.ow2.asm" % "asm-commons" % "7.0",
+      "org.apache.ant" % "ant" % "1.9.9",
+      "org.apache.maven" % "maven-plugin-api" % "3.3.9",
+      "org.apache.commons" % "commons-lang3" % "3.7",
+      "junit" % "junit" % "4.12" % Test,
+      "com.github.sbt" % "junit-interface" % "0.13.2" % Test
+    )
+  })
 
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
@@ -17,8 +35,7 @@ lazy val core = project
     name := "jarjar-abrams-core"
 
     crossScalaVersions := Vector(scala212, scala213, scala211, scala210)
-
-    libraryDependencies += jarjar
+    
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2.10.")) Nil
       else Vector(verify % Test)
@@ -40,6 +57,8 @@ lazy val core = project
       else Vector("-Xlint", "-Xfatal-warnings")
     }
   })
+  .dependsOn(jarjar)
+  .aggregate(jarjar)
 
 lazy val sbtplugin = project
   .enablePlugins(SbtPlugin)
