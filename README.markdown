@@ -3,7 +3,7 @@ Jar Jar Abrams
 
 Jar Jar Abrams is an experimental Scala extension of [Jar Jar Links][links] a utility to shade Java libraries.
 
-Pants Jar Jar
+Jar Jar Links
 ============
 
 [Pants Jar Jar](https://github.com/pantsbuild/jarjar) was migrated at commit 57845dc73d3e2c9b916ae4a788cfa12114fd7df1, dated Oct 28, 2018.
