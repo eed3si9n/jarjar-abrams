@@ -25,7 +25,7 @@ lazy val jarjar = project
       "org.ow2.asm" % "asm-commons" % "7.0",
       "org.apache.ant" % "ant" % "1.9.9",
       "org.apache.maven" % "maven-plugin-api" % "3.3.9",
-      "org.apache.commons" % "commons-lang3" % "3.7",
+      "org.apache.commons" % "commons-lang3" % "3.8.1",
       "junit" % "junit" % "4.12" % "it,test",
       "com.github.sbt" % "junit-interface" % "0.13.2" % "it,test"
     )
