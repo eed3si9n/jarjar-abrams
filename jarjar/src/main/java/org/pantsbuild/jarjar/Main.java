@@ -27,7 +27,7 @@ public class Main {
 
   static {
     try {
-      HELP = readIntoString(Main.class.getResourceAsStream("help.txt"));
+      HELP = readIntoString(Main.class.getResourceAsStream("/help.txt"));
     } catch (IOException e) {
       throw new RuntimeIOException(e);
     }

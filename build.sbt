@@ -13,6 +13,8 @@ ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
 
 lazy val jarjar = project
   .in(file("./jarjar"))
+  .configs(IntegrationTest)
+  .settings(Defaults.itSettings)
   .settings(nocomma {
     name := "jarjar"
     version := "1.7.3-SNAPSHOT"
@@ -24,8 +26,19 @@ lazy val jarjar = project
       "org.apache.ant" % "ant" % "1.9.9",
       "org.apache.maven" % "maven-plugin-api" % "3.3.9",
       "org.apache.commons" % "commons-lang3" % "3.7",
-      "junit" % "junit" % "4.12" % Test,
-      "com.github.sbt" % "junit-interface" % "0.13.2" % Test
+      "junit" % "junit" % "4.12" % "it,test",
+      "com.github.sbt" % "junit-interface" % "0.13.2" % "it,test"
+    )
+
+    mainClass := Some("org.pantsbuild.jarjar.Main")
+
+    testFrameworks += new TestFramework("com.novocode.junit.JUnitFramework")
+
+    IntegrationTest / fork := true
+    IntegrationTest / envVars := Map(
+      "JARJAR_CLASSPATH" -> (Runtime / fullClasspath)
+        .value
+        .map(_.data).mkString(System.getProperty("path.separator"))
     )
   })
 

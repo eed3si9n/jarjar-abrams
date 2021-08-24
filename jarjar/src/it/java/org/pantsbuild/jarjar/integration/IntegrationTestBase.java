@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.lang.System;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,23 +31,19 @@ import static org.junit.Assert.assertTrue;
  */
 public abstract class IntegrationTestBase {
 
+  static private String getJarJarClasspath() {
+    String path = System.getenv("JARJAR_CLASSPATH");
+    if (null == path || path.isEmpty()) {
+      System.err.println("Environment variable 'JARJAR_CLASSPATH' not found.");
+      System.exit(1);
+    }
+    return path;
+  }
+
+  static private String jarjarClasspath = getJarJarClasspath();
+
   @org.junit.Rule
   public TemporaryFolder workdir = new TemporaryFolder();
-
-  private File jarjarBinary;
-
-  protected File getJarJarBinary() throws IOException, InterruptedException {
-    if (jarjarBinary != null) return jarjarBinary;
-    File binary = new File("dist" + File.separator + "jarjar.jar");
-    if (binary.exists()) {
-      binary.delete();
-    }
-    Runtime.getRuntime().exec(new String[] {
-        "./pants", "--no-lock", "binary", "src/main::",
-    }).waitFor();
-    jarjarBinary = binary;
-    return binary;
-  }
 
   /**
    * Invokes javac in the given working directory with the given arguments.
@@ -200,7 +197,7 @@ public abstract class IntegrationTestBase {
     }
 
     String[] typicalArgs = {
-        "-cp", getJarJarBinary().getAbsolutePath(),
+        "-cp", jarjarClasspath,
         "org.pantsbuild.jarjar.Main",
         "process",
         rulesFile.getAbsolutePath(),
