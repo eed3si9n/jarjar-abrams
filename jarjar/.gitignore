@@ -1,0 +1,11 @@
+# pants work dirs
+/.pants.d/
+/dist/
+/.pids/
+/.cache/
+/.pants.workdir.file_lock
+
+# IDEA project definition files
+*.iml
+*.ipr
+*.iws
