@@ -30,4 +30,4 @@ jobs:
     - name: Coursier cache
       uses: coursier/cache-action@v6
     - name: Build and test
-      run: sbt -v "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
+      run: sbt -v "scalafmtCheckAll" "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
