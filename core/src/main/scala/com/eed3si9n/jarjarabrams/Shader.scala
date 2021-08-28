@@ -11,8 +11,7 @@ object Shader {
       mappings: Seq[(Path, String)],
       verbose: Boolean
   ): Unit =
-    if (rules.isEmpty) {}
-    else {
+    if (rules.isEmpty) {} else {
       val shader = bytecodeShader(rules, verbose)
       for {
         (path, name) <- mappings
@@ -27,19 +26,20 @@ object Shader {
     }
 
   def bytecodeShader(
-    rules: Seq[ShadeRule],
-    verbose: Boolean
+      rules: Seq[ShadeRule],
+      verbose: Boolean
   ): (Array[Byte], String) => Option[(Array[Byte], String)] =
-    if (rules.isEmpty) (bytes, mapping) => Some(bytes -> mapping)
+    if (rules.isEmpty)(bytes, mapping) => Some(bytes -> mapping)
     else {
       val jjrules = rules.flatMap { r =>
         r.shadePattern match {
           case ShadePattern.Rename(patterns) =>
-            patterns.map { case (from, to) =>
-              val jrule = new Rule()
-              jrule.setPattern(from)
-              jrule.setResult(to)
-              jrule
+            patterns.map {
+              case (from, to) =>
+                val jrule = new Rule()
+                jrule.setPattern(from)
+                jrule.setResult(to)
+                jrule
             }
           case ShadePattern.Zap(patterns) =>
             patterns.map { pattern =>
