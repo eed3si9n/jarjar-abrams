@@ -1,6 +1,9 @@
 Jar Jar Abrams
 ==============
 
+[![Continuous Integration](https://github.com/eed3si9n/jarjar-abrams/actions/workflows/ci.yml/badge.svg?branch=develop)](https://github.com/eed3si9n/jarjar-abrams/actions/workflows/ci.yml)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.eed3si9n.jarjarabrams/jarjar-abrams-core_2.13/badge.svg)](https://search.maven.org/search?q=g:com.eed3si9n.jarjarabrams)
+
 Jar Jar Abrams is an experimental Scala extension of [Jar Jar Links][links] a utility to shade Java libraries.
 
 Jar Jar Links
