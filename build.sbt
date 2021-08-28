@@ -13,6 +13,7 @@ ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
 
 lazy val jarjar = project
   .in(file("./jarjar"))
+  .disablePlugins(ScalafmtPlugin)
   .configs(IntegrationTest)
   .settings(Defaults.itSettings)
   .settings(nocomma {
