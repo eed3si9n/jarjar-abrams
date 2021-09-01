@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
 ThisBuild / organizationName := "eed3si9n"
 ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
-ThisBuild / version := "0.4.0-SNAPSHOT"
+ThisBuild / version := "1.8.1-SNAPSHOT"
 ThisBuild / description := "utility to shade Scala libraries"
 ThisBuild / licenses := Seq(
   "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
@@ -19,7 +19,7 @@ lazy val jarjar = project
   .settings(nocomma {
     organization := "com.eed3si9n.jarjar"
     name := "jarjar"
-    version := "1.8.0-SNAPSHOT"
+    crossScalaVersions := Vector(scala212)
     crossPaths := false
     autoScalaLibrary := false
     libraryDependencies ++= Seq(
@@ -46,6 +46,7 @@ lazy val jarjar = project
 
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
+  .dependsOn(jarjar)
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
@@ -72,8 +73,6 @@ lazy val core = project
       else Vector("-Xlint", "-Xfatal-warnings")
     }
   })
-  .dependsOn(jarjar)
-  .aggregate(jarjar)
 
 lazy val sbtplugin = project
   .enablePlugins(SbtPlugin)
