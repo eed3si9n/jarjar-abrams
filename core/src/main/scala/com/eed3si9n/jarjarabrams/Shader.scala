@@ -1,8 +1,8 @@
 package com.eed3si9n.jarjarabrams
 
 import java.nio.file.{ Files, Path, StandardOpenOption }
-import org.pantsbuild.jarjar.{ JJProcessor, _ }
-import org.pantsbuild.jarjar.util.EntryStruct
+import com.eed3si9n.jarjar.{ JJProcessor, _ }
+import com.eed3si9n.jarjar.util.EntryStruct
 
 object Shader {
   def shadeDirectory(
