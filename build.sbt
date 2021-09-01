@@ -23,8 +23,8 @@ lazy val jarjar = project
     crossPaths := false
     autoScalaLibrary := false
     libraryDependencies ++= Seq(
-      "org.ow2.asm" % "asm" % "7.0",
-      "org.ow2.asm" % "asm-commons" % "7.0",
+      "org.ow2.asm" % "asm" % "9.2",
+      "org.ow2.asm" % "asm-commons" % "9.2",
       "org.apache.ant" % "ant" % "1.9.9",
       "org.apache.maven" % "maven-plugin-api" % "3.3.9",
       "org.apache.commons" % "commons-lang3" % "3.8.1",
