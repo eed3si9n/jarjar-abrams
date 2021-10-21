@@ -42,6 +42,14 @@ lazy val jarjar = project
         .value
         .map(_.data).mkString(System.getProperty("path.separator"))
     )
+
+    assemblyMergeStrategy  := {
+      case PathList("module-info.class") => MergeStrategy.discard
+      case x if x.endsWith("/module-info.class") => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+        oldStrategy(x)
+    }
   })
 
 lazy val core = project
