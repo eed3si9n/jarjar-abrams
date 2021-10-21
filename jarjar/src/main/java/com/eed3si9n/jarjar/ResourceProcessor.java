@@ -16,12 +16,16 @@
 
 package com.eed3si9n.jarjar;
 
-import com.eed3si9n.jarjar.util.*;
+import com.eed3si9n.jarjar.util.EntryStruct;
+import com.eed3si9n.jarjar.util.JarProcessor;
+
 import java.io.IOException;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 class ResourceProcessor implements JarProcessor
 {
+    private final static String META_INF_SERVICES = "META-INF/services/";
     private PackageRemapper pr;
 
     public ResourceProcessor(PackageRemapper pr) {
@@ -29,9 +33,46 @@ class ResourceProcessor implements JarProcessor
     }
 
     public boolean process(EntryStruct struct) throws IOException {
-        if (!struct.name.endsWith(".class"))
-            struct.name = pr.mapPath(struct.name);
+        switch (identify(struct)) {
+            case CLASS_FILE:
+                break;
+            case SERVICE_PROVIDER_CONFIGURATION:
+                struct.name = remapService(struct.name);
+                struct.data = remapServiceProviders(struct.data);
+                break;
+            case OTHER:
+                struct.name = pr.mapPath(struct.name);
+                break;
+        }
         return true;
+    }
+
+    private String remapService(String serviceFile) {
+        int idx = serviceFile.lastIndexOf('/');
+        return META_INF_SERVICES + pr.mapValue(serviceFile.substring(idx + 1));
+    }
+
+    private byte[] remapServiceProviders(byte[] providers) {
+        // Provider configuration is encoded in UTF-8
+        // The file can also have comments and whitespaces
+        String s = new String(providers, StandardCharsets.UTF_8);
+        String mapped = s.lines().map(l -> (String) pr.mapValue(l.split("#")[0].trim())).collect(Collectors.joining(System.lineSeparator()));
+        return mapped.getBytes(StandardCharsets.UTF_8);
+    }
+
+    private Resource identify(EntryStruct struct) {
+        if (struct.name.endsWith(".class"))
+            return Resource.CLASS_FILE;
+        // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ServiceLoader.html
+        if (struct.name.startsWith(META_INF_SERVICES) && !struct.name.equals(META_INF_SERVICES))
+            return Resource.SERVICE_PROVIDER_CONFIGURATION;
+        return Resource.OTHER;
+    }
+
+    private enum Resource {
+        CLASS_FILE,
+        SERVICE_PROVIDER_CONFIGURATION,
+        OTHER
     }
 }
     
