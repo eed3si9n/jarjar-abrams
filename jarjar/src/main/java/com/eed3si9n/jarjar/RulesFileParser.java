@@ -34,7 +34,7 @@ class RulesFileParser
 
     private static String stripComment(String in) {
       int p = in.indexOf("#");
-      return p < 0 ? in : in.substring(0, p);
+      return p < 0 ? in : in.substring(0, p).trim();
     }
 
     private static List<PatternElement> parse(Reader r) throws IOException {
