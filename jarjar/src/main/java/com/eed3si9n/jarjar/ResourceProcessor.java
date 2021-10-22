@@ -59,7 +59,7 @@ class ResourceProcessor implements JarProcessor
         String s = new String(providers, StandardCharsets.UTF_8);
 
         String mapped = Arrays.stream(s.split(System.lineSeparator()))
-            .map(l -> (String) pr.mapValue(l.split("#")[0].trim()))
+            .map(l -> (String) pr.mapValue(Arrays.stream(l.split("#")).findFirst().orElse("").trim()))
             .collect(Collectors.joining(System.lineSeparator()));
         return mapped.getBytes(StandardCharsets.UTF_8);
     }

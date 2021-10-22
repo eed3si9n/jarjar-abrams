@@ -36,10 +36,12 @@ public class ResourceProcessorTest {
     public void testServiceProviderConfig() throws IOException {
         String original = "org.example.Impl     # comment" + System.lineSeparator()
                         + "org.example.AnotherImpl" + System.lineSeparator()
+                        + "#" + System.lineSeparator()
                         + System.lineSeparator()
                         + "     org.another.Impl";
         String expected = "something.shaded.org.example.Impl" + System.lineSeparator()
                         + "something.shaded.org.example.AnotherImpl" + System.lineSeparator()
+                        + System.lineSeparator()
                         + System.lineSeparator()
                         + "org.another.Impl";
         EntryStruct entryStruct = new EntryStruct();
