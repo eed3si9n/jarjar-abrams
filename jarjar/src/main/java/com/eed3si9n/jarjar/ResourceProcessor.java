@@ -21,6 +21,7 @@ import com.eed3si9n.jarjar.util.JarProcessor;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 class ResourceProcessor implements JarProcessor
@@ -56,7 +57,10 @@ class ResourceProcessor implements JarProcessor
         // Provider configuration is encoded in UTF-8
         // The file can also have comments and whitespaces
         String s = new String(providers, StandardCharsets.UTF_8);
-        String mapped = s.lines().map(l -> (String) pr.mapValue(l.split("#")[0].trim())).collect(Collectors.joining(System.lineSeparator()));
+
+        String mapped = Arrays.stream(s.split(System.lineSeparator()))
+            .map(l -> (String) pr.mapValue(l.split("#")[0].trim()))
+            .collect(Collectors.joining(System.lineSeparator()));
         return mapped.getBytes(StandardCharsets.UTF_8);
     }
 
