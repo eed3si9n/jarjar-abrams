@@ -52,9 +52,20 @@ lazy val jarjar = project
     }
   })
 
+lazy val jarjar_assembly = project
+  .settings(nocomma {
+    organization := "com.eed3si9n.jarjar"
+    crossScalaVersions := Vector(scala212)
+    crossPaths := false
+    autoScalaLibrary := false
+    name := "JarJar Assembly"
+    Compile / packageBin := (jarjar / assembly).value
+  })
+
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
   .dependsOn(jarjar)
+  .aggregate(jarjar_assembly)
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
