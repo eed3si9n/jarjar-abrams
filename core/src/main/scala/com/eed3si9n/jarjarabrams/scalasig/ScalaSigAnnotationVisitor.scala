@@ -24,6 +24,7 @@ class ScalaSigAnnotationVisitor(
     cv: ClassVisitor,
     renamer: String => Option[String]
 ) extends AnnotationVisitor(Opcodes.ASM7) {
+  import ScalaSigAnnotationVisitor._
 
   private val MaxStringSizeInBytes = 65535
   private val annotationBytes: ByteArrayOutputStream = new ByteArrayOutputStream()
@@ -65,32 +66,15 @@ class ScalaSigAnnotationVisitor(
       // Encode as ScalaLongSignature containing an array of strings
       val av = cv.visitAnnotation("Lscala/reflect/ScalaLongSignature;", visible)
 
-      def nextChunk(from: Int): Array[Char] = {
-        if (from == chars.length) {
-          Array.empty
-        } else {
-          var size = 0
-          var index = 0
-
-          while (size < MaxStringSizeInBytes && from + index < chars.length) {
-            val c = chars(from + index)
-            size += (if (c == 0) 2 else 1)
-            index += 1
-          }
-
-          chars.slice(from, from + index)
-        }
-      }
-
       // Write the array of strings as chunks of max MaxStringSizeInBytes bytes
       val arrayVisitor = av.visitArray("bytes")
 
       var offset = 0
-      var chunk = nextChunk(offset)
+      var chunk = nextChunk(chars, offset, MaxStringSizeInBytes)
       while (chunk.nonEmpty) {
         arrayVisitor.visit("bytes", new String(chunk))
         offset += chunk.length
-        chunk = nextChunk(offset)
+        chunk = nextChunk(chars, offset, MaxStringSizeInBytes)
       }
       arrayVisitor.visitEnd()
 
@@ -125,5 +109,24 @@ class ScalaSigAnnotationVisitor(
       idx += 1
     }
     ca
+  }
+}
+
+object ScalaSigAnnotationVisitor {
+  def nextChunk(chars: Array[Char], from: Int, maxBytes: Int): Array[Char] = {
+    if (from == chars.length) {
+      Array.empty
+    } else {
+      var size = 0
+      var index = 0
+
+      while (size < maxBytes && from + index < chars.length) {
+        val c = chars(from + index)
+        size += (if (c == 0) 2 else 1)
+        if (size <= maxBytes) index += 1
+      }
+
+      chars.slice(from, from + index)
+    }
   }
 }
