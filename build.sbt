@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
 ThisBuild / organizationName := "eed3si9n"
 ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
-ThisBuild / version := "1.8.1-SNAPSHOT"
+ThisBuild / version := "1.8.2-SNAPSHOT"
 ThisBuild / description := "utility to shade Scala libraries"
 ThisBuild / licenses := Seq(
   "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
@@ -65,7 +65,6 @@ lazy val jarjar_assembly = project
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
   .dependsOn(jarjar)
-  .aggregate(jarjar_assembly)
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
