@@ -17,6 +17,8 @@
 package com.eed3si9n.jarjar.util;
 
 import java.io.*;
+
+import static com.eed3si9n.jarjar.misplaced.MisplacedClassProcessor.VERSIONED_CLASS_FOLDER;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -41,7 +43,10 @@ abstract public class JarTransformer implements JarProcessor {
                 throw new IOException("Unable to transform " + struct.name, e);
             }
             struct.data = w.toByteArray();
-            struct.name = pathFromName(w.getClassName());
+            String prefix = struct.name.startsWith(VERSIONED_CLASS_FOLDER) ?
+                    struct.name.substring(0, struct.name.indexOf("/", VERSIONED_CLASS_FOLDER.length()) + 1) :
+                    "";
+            struct.name = prefix + pathFromName(w.getClassName());
         }
         return true;
     }

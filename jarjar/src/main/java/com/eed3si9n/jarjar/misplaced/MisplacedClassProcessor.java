@@ -9,6 +9,7 @@ import com.eed3si9n.jarjar.util.JarProcessor;
  * Processor that handles classes whose fully-qualified names do not match their jar entry location.
  */
 public abstract class MisplacedClassProcessor implements JarProcessor {
+  public static String VERSIONED_CLASS_FOLDER = "META-INF/versions/";
 
   /**
    * Handles a class that was found at a location that does not match its fully qualified classname.
@@ -44,7 +45,10 @@ public abstract class MisplacedClassProcessor implements JarProcessor {
       struct.skipTransform = true;
       return true;
     }
-    if (!originalClassName.equals(struct.name)) {
+    String name = struct.name.startsWith(VERSIONED_CLASS_FOLDER) ?
+          struct.name.substring(struct.name.indexOf("/", VERSIONED_CLASS_FOLDER.length()) + 1) :
+          struct.name;
+    if (!originalClassName.equals(name)) {
       System.err.println(formatMisplacedClassMessage(struct, originalClassName));
       handleMisplacedClass(struct, originalClassName);
       if (!shouldTransform()) {
