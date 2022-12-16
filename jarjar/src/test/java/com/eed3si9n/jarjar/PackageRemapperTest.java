@@ -61,6 +61,13 @@ extends TestCase
       assertEquals("foo/example.package-info", remapper.mapValue("org/example.package-info"));
     }
 
+    @Test
+    public void testUnchangedInnerClassNames() {
+        String outer = "scala.collection.immutable.IntMap";
+        String inner = "Nil$";
+        assertEquals(inner, remapper.mapInnerClassName(outer + "$" + inner, outer, inner));
+    }
+
     private void assertUnchangedValue(String value) {
         assertEquals(value, remapper.mapValue(value));
     }

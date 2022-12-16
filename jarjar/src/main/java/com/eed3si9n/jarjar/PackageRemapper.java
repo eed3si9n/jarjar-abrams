@@ -117,6 +117,16 @@ class PackageRemapper extends Remapper
         }
     }
 
+    @Override
+    public String mapInnerClassName(
+            final String name, final String ownerName, final String innerName) {
+        // The default method would try to be smart and find the inner class name
+        // by looking at the $ sign. As the documentation calls out, this works in java
+        // but not necessarily in other languages, including scala, where $ has multiple applications.
+        // Since we actually don't care about remapping class names, only packages, we can ignore this
+        return innerName;
+    }
+
     private String replaceHelper(String value) {
         for (Wildcard wildcard : wildcards) {
             String test = wildcard.replace(value);
