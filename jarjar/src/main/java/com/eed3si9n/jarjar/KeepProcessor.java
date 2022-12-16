@@ -20,7 +20,6 @@ import com.eed3si9n.jarjar.util.*;
 import java.io.*;
 import java.util.*;
 import org.objectweb.asm.*;
-import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.*;
 
 // TODO: this can probably be refactored into JarClassVisitor, etc.
@@ -41,42 +40,43 @@ class KeepProcessor extends Remapper implements JarProcessor
 
     public Set<String> getExcludes() {
         Set<String> closure = new HashSet<String>();
-        closureHelper(closure, roots);
+        recursiveProcessDependencies(closure, roots);
+
         Set<String> removable = new HashSet<String>(depend.keySet());
         removable.removeAll(closure);
         return removable;
     }
 
-    private void closureHelper(Set<String> closure, Collection<String> process) {
-        if (process == null)
+    private void recursiveProcessDependencies(Set<String> result, Collection<String> roots) {
+        if (roots == null)
             return;
-        for (String name : process) {
-            if (closure.add(name))
-                closureHelper(closure, depend.get(name));
+        for (String name : roots) {
+            if (result.add(name))
+                recursiveProcessDependencies(result, depend.get(name));
         }
     }
 
-    private Set<String> curSet;
-    private byte[] buf = new byte[0x2000];
+    private Set<String> currentDependenciesSet;
 
     public boolean process(EntryStruct struct) throws IOException {
-        try {
-            if (struct.name.endsWith(".class")) {
-                String name = struct.name.substring(0, struct.name.length() - 6);
-                for (Wildcard wildcard : wildcards) {
-                    if (wildcard.matches(name)) {
-                        roots.add(name);
-                        depend.put(name, curSet = new HashSet<String>());
-                        new ClassReader(new ByteArrayInputStream(struct.data)).accept(cv,
-                                ClassReader.EXPAND_FRAMES);
-                        curSet.remove(name);
-                        return true;
-                    }
-                }
-                return false;
+        if (struct.name.endsWith(".class")) {
+            String name = struct.name.substring(0, struct.name.length() - 6);
+            depend.put(name, currentDependenciesSet = new HashSet<String>());
+            try {
+                new ClassReader(new ByteArrayInputStream(struct.data)).accept(cv,
+                        ClassReader.EXPAND_FRAMES);
+                currentDependenciesSet.remove(name);
+            } catch (Exception e) {
+                System.err.println("Error reading " + struct.name + ": " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("Error reading " + struct.name + ": " + e.getMessage());
+
+            for (Wildcard wildcard : wildcards) {
+                if (wildcard.matches(name)) {
+                    roots.add(name);
+                    return true;
+                }
+            }
+            return false;
         }
         return true;
     }
@@ -84,7 +84,7 @@ class KeepProcessor extends Remapper implements JarProcessor
     public String map(String key) {
         if (key.startsWith("java/") || key.startsWith("javax/"))
             return null;
-        curSet.add(key);
+        currentDependenciesSet.add(key);
         return null;
     }
 
