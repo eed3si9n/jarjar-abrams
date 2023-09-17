@@ -4,7 +4,7 @@ ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
 ThisBuild / organizationName := "eed3si9n"
 ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
-ThisBuild / version := "1.8.3-SNAPSHOT"
+ThisBuild / version := "1.8.3"
 ThisBuild / description := "utility to shade Scala libraries"
 ThisBuild / licenses := Seq(
   "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
@@ -25,8 +25,6 @@ lazy val jarjar = project
     libraryDependencies ++= Seq(
       "org.ow2.asm" % "asm" % "9.5",
       "org.ow2.asm" % "asm-commons" % "9.5",
-      "org.apache.ant" % "ant" % "1.10.14",
-      "org.apache.maven" % "maven-plugin-api" % "3.9.4",
       "org.apache.commons" % "commons-lang3" % "3.8.1",
       "junit" % "junit" % "4.12" % "it,test",
       "com.github.sbt" % "junit-interface" % "0.13.2" % "it,test"
@@ -50,6 +48,36 @@ lazy val jarjar = project
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     }
+  })
+
+lazy val ant_jarjar = project
+  .in(file("ant-jarjar"))
+  .disablePlugins(ScalafmtPlugin)
+  .dependsOn(jarjar)
+  .settings(nocomma {
+    organization := "com.eed3si9n.jarjar"
+    name := "ant-jarjar"
+    crossScalaVersions := Vector(scala212)
+    crossPaths := false
+    autoScalaLibrary := false
+    libraryDependencies ++= Seq(
+      "org.apache.ant" % "ant" % "1.10.14",
+    )
+  })
+
+lazy val maven_jarjar = project
+  .in(file("maven-jarjar"))
+  .disablePlugins(ScalafmtPlugin)
+  .dependsOn(jarjar)
+  .settings(nocomma {
+    organization := "com.eed3si9n.jarjar"
+    name := "maven-jarjar"
+    crossScalaVersions := Vector(scala212)
+    crossPaths := false
+    autoScalaLibrary := false
+    libraryDependencies ++= Seq(
+      "org.apache.maven" % "maven-plugin-api" % "3.9.4",
+    )
   })
 
 lazy val jarjar_assembly = project
