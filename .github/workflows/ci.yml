@@ -15,6 +15,9 @@ jobs:
           - os: ubuntu-latest
             java: 11
             jobtype: 1
+          - os: ubuntu-latest
+            java: 11
+            jobtype: 2
     runs-on: ${{ matrix.os }}
     env:
       # define Java options for both official sbt and sbt-extras
@@ -22,12 +25,20 @@ jobs:
       JVM_OPTS:  -Xms2048M -Xmx2048M -Xss6M -XX:ReservedCodeCacheSize=256M -Dfile.encoding=UTF-8
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
-    - name: Setup
-      uses: olafurpg/setup-scala@v13
+      uses: actions/checkout@v4
+    - name: Setup JDK
+      uses: actions/setup-java@v3
       with:
-        java-version: "adopt@1.${{ matrix.java }}"
-    - name: Coursier cache
-      uses: coursier/cache-action@v6
-    - name: Build and test
-      run: sbt -v "scalafmtCheckAll" "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
+        distribution: temurin
+        java-version: "${{ matrix.java }}"
+        cache: sbt
+    - name: Build and test (1)
+      if: ${{ matrix.jobtype == 1 }}
+      shell: bash
+      run: |
+        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
+    - name: Build and test (2)
+      if: ${{ matrix.jobtype == 2 }}
+      shell: bash
+      run: |
+        sbt -v -Dfile.encoding=UTF8 scalafmtCheckAll
