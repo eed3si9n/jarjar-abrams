@@ -25,8 +25,8 @@ lazy val jarjar = project
     libraryDependencies ++= Seq(
       "org.ow2.asm" % "asm" % "9.5",
       "org.ow2.asm" % "asm-commons" % "9.5",
-      "org.apache.ant" % "ant" % "1.9.9",
-      "org.apache.maven" % "maven-plugin-api" % "3.3.9",
+      "org.apache.ant" % "ant" % "1.10.14",
+      "org.apache.maven" % "maven-plugin-api" % "3.9.4",
       "org.apache.commons" % "commons-lang3" % "3.8.1",
       "junit" % "junit" % "4.12" % "it,test",
       "com.github.sbt" % "junit-interface" % "0.13.2" % "it,test"
@@ -38,13 +38,13 @@ lazy val jarjar = project
 
     IntegrationTest / fork := true
     IntegrationTest / envVars := Map(
-      "JARJAR_CLASSPATH" -> (Runtime / fullClasspath)
-        .value
-        .map(_.data).mkString(System.getProperty("path.separator"))
+      "JARJAR_CLASSPATH" -> (Runtime / fullClasspath).value
+        .map(_.data)
+        .mkString(System.getProperty("path.separator"))
     )
 
-    assemblyMergeStrategy  := {
-      case PathList("module-info.class") => MergeStrategy.discard
+    assemblyMergeStrategy := {
+      case PathList("module-info.class")         => MergeStrategy.discard
       case x if x.endsWith("/module-info.class") => MergeStrategy.discard
       case x =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
