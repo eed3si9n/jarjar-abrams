@@ -4,7 +4,11 @@ ThisBuild / scalaVersion := scala212
 ThisBuild / organization := "com.eed3si9n.jarjarabrams"
 ThisBuild / organizationName := "eed3si9n"
 ThisBuild / organizationHomepage := Some(url("http://eed3si9n.com/"))
-ThisBuild / version := "1.8.3"
+ThisBuild / version := {
+  val old = (ThisBuild / version).value
+  if ((ThisBuild / isSnapshot).value) "1.9.0-SNAPSHOT"
+  else old
+}
 ThisBuild / description := "utility to shade Scala libraries"
 ThisBuild / licenses := Seq(
   "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
