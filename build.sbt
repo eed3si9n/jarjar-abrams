@@ -94,6 +94,13 @@ lazy val jarjar_assembly = project
     Compile / packageBin := (jarjar / assembly).value
   })
 
+lazy val jarjar_abrams_assembly = project
+  .settings(nocomma {
+    crossScalaVersions := Vector(scala212, scala213, scala211, scala210)
+    name := "jarjar-abrams-assembly"
+    Compile / packageBin := (core / assembly).value
+  })
+
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
   .dependsOn(jarjar)
@@ -118,9 +125,10 @@ lazy val core = project
 
     testFrameworks += new TestFramework("verify.runner.Framework")
 
+    Compile / scalacOptions += "-deprecation"
     Compile / scalacOptions ++= {
-      if (scalaVersion.value.startsWith("2.13.")) Vector("-Xlint")
-      else Vector("-Xlint", "-Xfatal-warnings")
+      if (scalaVersion.value.startsWith("2.12.")) Vector("-Xlint", "-Xfatal-warnings")
+      else Vector("-Xlint")
     }
   })
 
@@ -163,3 +171,9 @@ ThisBuild / publishTo := {
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 ThisBuild / publishMavenStyle := true
+ThisBuild / assemblyMergeStrategy := {
+  case "module-info.class" => MergeStrategy.discard
+  case x =>
+    val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
+    oldStrategy(x)
+}

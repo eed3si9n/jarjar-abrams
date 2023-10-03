@@ -19,7 +19,7 @@ package com.eed3si9n.jarjar;
 import java.io.*;
 import java.util.*;
 
-class RulesFileParser
+public class RulesFileParser
 {
     private RulesFileParser() {
     }
