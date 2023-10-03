@@ -1,0 +1,1 @@
+rule net.bytebuddy.agent.** foo.@1

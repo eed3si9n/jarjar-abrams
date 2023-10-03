@@ -17,12 +17,14 @@
 package com.eed3si9n.jarjar;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-class MainUtil
+public class MainUtil
 {
     public static void runMain(Object main, String[] args, String defCommand) throws Exception {
         if (args.length > 0) {
@@ -79,6 +81,8 @@ class MainUtil
             return Integer.valueOf(arg, 10);
         } else if (type.equals(File.class)) {
             return new File(arg);
+        } else if (type.equals(Path.class)) {
+            return Paths.get(arg);
         } else {
             throw new UnsupportedOperationException("Unknown type " + type);
         }

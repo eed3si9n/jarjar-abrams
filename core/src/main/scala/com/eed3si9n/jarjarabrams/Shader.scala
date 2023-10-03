@@ -3,16 +3,61 @@ package com.eed3si9n.jarjarabrams
 import java.nio.file.{ Files, Path, StandardOpenOption }
 import com.eed3si9n.jarjar.{ JJProcessor, _ }
 import com.eed3si9n.jarjar.util.EntryStruct
+import Zip.{ createDirectories, resetModifiedTime }
+import scala.collection.JavaConverters._
 
 object Shader {
+  def shadeFile(
+      rules: Seq[ShadeRule],
+      inputJar: Path,
+      outputJar: Path,
+      verbose: Boolean,
+      skipManifest: Boolean
+  ): Unit = {
+    val tempDir = Files.createTempDirectory("jarjar-in")
+    val outDir = Files.createTempDirectory("jarjar-out")
+    val tempJar = Files.createTempFile("jarjar", ".jar")
+    Zip.unzip(inputJar, tempDir)
+    shadeDirectory(
+      rules,
+      outDir,
+      makeMappings(tempDir),
+      verbose = verbose,
+      skipManifest = skipManifest
+    )
+    Zip.zip(makeMappings(outDir), tempJar)
+    resetModifiedTime(tempJar)
+    if (Files.exists(outputJar)) {
+      Files.delete(outputJar)
+    }
+    createDirectories(outputJar.getParent)
+    Files.copy(tempJar, outputJar)
+    resetModifiedTime(outputJar)
+  }
+
+  def makeMappings(dir: Path): List[(Path, String)] =
+    Files.walk(dir).iterator().asScala.toList.flatMap { x =>
+      if (x == dir) None
+      else Some(x -> dir.relativize(x).toString)
+    }
+
   def shadeDirectory(
       rules: Seq[ShadeRule],
       dir: Path,
       mappings: Seq[(Path, String)],
       verbose: Boolean
+  ): Unit = shadeDirectory(rules, dir, mappings, verbose, skipManifest = true)
+
+  def shadeDirectory(
+      rules: Seq[ShadeRule],
+      dir: Path,
+      mappings: Seq[(Path, String)],
+      verbose: Boolean,
+      skipManifest: Boolean
   ): Unit =
-    if (rules.isEmpty) {} else {
-      val shader = bytecodeShader(rules, verbose)
+    if (rules.isEmpty) ()
+    else {
+      val shader = bytecodeShader(rules, verbose, skipManifest)
       for {
         (path, name) <- mappings
         if !Files.isDirectory(path)
@@ -20,14 +65,19 @@ object Shader {
         _ = Files.delete(path)
         (shadedBytes, shadedName) <- shader(bytes, name)
         out = dir.resolve(shadedName)
-        _ = Files.createDirectories(out.getParent)
+        _ = createDirectories(out.getParent)
         _ = Files.write(out, shadedBytes, StandardOpenOption.CREATE)
       } yield ()
+      Files.walk(dir).iterator().asScala.toList.foreach { x =>
+        if (x == dir) ()
+        else Zip.resetModifiedTime(x)
+      }
     }
 
   def bytecodeShader(
       rules: Seq[ShadeRule],
-      verbose: Boolean
+      verbose: Boolean,
+      skipManifest: Boolean
   ): (Array[Byte], String) => Option[(Array[Byte], String)] =
     if (rules.isEmpty)(bytes, mapping) => Some(bytes -> mapping)
     else {
@@ -57,7 +107,12 @@ object Shader {
         }
       }
 
-      val proc = new JJProcessor(jjrules, verbose, true, null)
+      val proc = new JJProcessor(
+        patterns = jjrules,
+        verbose = verbose,
+        skipManifest = skipManifest,
+        misplacedClassStrategy = null
+      )
       val excludes = proc.getExcludes
 
       (bytes, mapping) =>
@@ -76,6 +131,14 @@ object Shader {
           Some(entry.data -> entry.name)
         else
           None
+    }
+
+  def toShadeRule(rule: PatternElement): ShadeRule =
+    rule match {
+      case r: Rule =>
+        ShadeRule(ShadeRule.rename((r.getPattern, r.getResult)), Vector(ShadeTarget.inAll))
+      case r: Keep => ShadeRule(ShadeRule.keep((r.getPattern)), Vector(ShadeTarget.inAll))
+      case r: Zap  => ShadeRule(ShadeRule.zap((r.getPattern)), Vector(ShadeTarget.inAll))
     }
 }
 
