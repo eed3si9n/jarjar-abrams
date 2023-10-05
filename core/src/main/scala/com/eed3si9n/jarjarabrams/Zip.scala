@@ -1,5 +1,6 @@
 package com.eed3si9n.jarjarabrams
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{ Files, NoSuchFileException, Path }
 import java.nio.file.attribute.FileTime
 import java.io.{ BufferedOutputStream, File, FileNotFoundException, InputStream, OutputStream }
@@ -17,17 +18,18 @@ object Zip {
   // 2010-01-01
   private final val default2010Timestamp = 1262304000000L
 
-  def zip(sources: Iterable[(Path, String)], outputJar: Path): Unit =
-    archive(sources.toSeq, outputJar, None, default2010Timestamp)
+  def jar(sources: Iterable[(Path, String)], outputJar: Path): Unit =
+    archive(sources.toSeq, outputJar, None, default2010Timestamp, jar = true)
 
-  def unzip(from: Path, toDirectory: Path): Set[Path] =
+  def unjar(from: Path, toDirectory: Path): Set[Path] =
     Using.fileInputStream(from)(in => unzipStream(in, toDirectory))
 
   private def archive(
       mapping: Seq[(Path, String)],
       outputFile: Path,
       manifest: Option[Manifest],
-      time: Long
+      time: Long,
+      jar: Boolean,
   ) = {
     // The zip 'setTime' methods try to convert from the given time to the local time based
     // on java.util.TimeZone.getDefault(). When explicitly specifying the timestamp, we assume
@@ -38,9 +40,10 @@ object Zip {
     else {
       val outputDir = outputFile.getParent
       createDirectories(outputDir)
-      withZipOutput(outputFile, manifest, localTime) { output =>
+      withZipOutput(outputFile, manifest, localTime, jar) { output =>
         val createEntry: (String => ZipEntry) =
-          if (manifest.isDefined) new JarEntry(_) else new ZipEntry(_)
+          if (jar) new JarEntry(_)
+          else new ZipEntry(_)
         writeZip(mapping, output, localTime)(createEntry)
       }
     }
@@ -116,7 +119,7 @@ object Zip {
   private def allDirectoryPaths(files: Iterable[(Path, String)]) =
     TreeSet[String]() ++ (files.flatMap { case (_, name) => directoryPaths(name) })
 
-  private def withZipOutput(file: Path, manifest: Option[Manifest], time: Long)(
+  private def withZipOutput(file: Path, manifest: Option[Manifest], time: Long, jar: Boolean)(
       f: ZipOutputStream => Unit
   ) = {
     Using.fileOutputStream(false)(file) { fileOut =>
@@ -134,7 +137,9 @@ object Zip {
             mf.write(new BufferedOutputStream(os))
             os.closeEntry()
             (os, "jar")
-          case None => (new ZipOutputStream(fileOut), "zip")
+          case None =>
+            if (jar) (new JarOutputStream(fileOut), "jar")
+            else (new ZipOutputStream(fileOut, StandardCharsets.UTF_8), "zip")
         }
       try {
         f(zipOut)

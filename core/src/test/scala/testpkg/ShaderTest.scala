@@ -18,7 +18,7 @@ object ShaderTest extends BasicTestSuite {
     val rules = Paths.get("example/shade.rules")
     new Main().process(rules, inJar, tempJar)
     val tempDir = Files.createTempDirectory("jarjartest")
-    Zip.unzip(tempJar, tempDir)
+    Zip.unjar(tempJar, tempDir)
     val entries = Shader.makeMappings(tempDir).map(_._2)
     assert(entries.contains(expectedClass))
   }

@@ -17,7 +17,7 @@ object Shader {
     val tempDir = Files.createTempDirectory("jarjar-in")
     val outDir = Files.createTempDirectory("jarjar-out")
     val tempJar = Files.createTempFile("jarjar", ".jar")
-    Zip.unzip(inputJar, tempDir)
+    Zip.unjar(inputJar, tempDir)
     shadeDirectory(
       rules,
       outDir,
@@ -25,7 +25,7 @@ object Shader {
       verbose = verbose,
       skipManifest = skipManifest
     )
-    Zip.zip(makeMappings(outDir), tempJar)
+    Zip.jar(makeMappings(outDir), tempJar)
     resetModifiedTime(tempJar)
     if (Files.exists(outputJar)) {
       Files.delete(outputJar)
