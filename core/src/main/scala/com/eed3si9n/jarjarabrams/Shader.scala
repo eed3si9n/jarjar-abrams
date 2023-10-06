@@ -122,6 +122,9 @@ object Shader {
           None
     }
 
+  def parseRulesFile(rulesFile: Path): List[ShadeRule] =
+    RulesFileParser.parse(rulesFile.toFile()).asScala.map(toShadeRule).toList
+
   def toShadeRule(rule: PatternElement): ShadeRule =
     rule match {
       case r: Rule =>

@@ -2,23 +2,70 @@ package testpkg
 
 import verify._
 import java.nio.file.{ Files, Path, Paths }
-import com.eed3si9n.jarjarabrams.{ Main, Zip }
+import com.eed3si9n.jarjarabrams.{ Shader, Zip }
 
 object ShaderTest extends BasicTestSuite {
+  final val byteBuddyJar = "example/byte-buddy-agent.jar"
+  final val shapelessJar = "example/shapeless_2.12-2.3.2.jar"
+  final val expectedByteBuddyClass = "foo/Attacher.class"
+  final val expectedShapelessClass = "bar/shapeless/Poly8.class"
+
   test("shade bytebuddy") {
-    testShading(Paths.get("example/byte-buddy-agent.jar"), "foo/Attacher.class")
+    testShading(
+      Paths.get(byteBuddyJar),
+      resetTimestamp = false,
+      expectedClass = expectedByteBuddyClass,
+      expectedSha = "6e7372e52e3b2e981ffa42fc29d5cec1cc84431972d45fb51d605210e11c3ebd"
+    )
+  }
+
+  test("shade bytebuddy (resetTimestamp)") {
+    testShading(
+      Paths.get(byteBuddyJar),
+      resetTimestamp = true,
+      expectedClass = expectedByteBuddyClass,
+      expectedSha = "33ceee11fb2b5e4d46ebe552025bc17bc4d9391974c55e07d63f9e85d2ec381a"
+    )
   }
 
   test("shade shapeless") {
-    testShading(Paths.get("example/shapeless_2.12-2.3.2.jar"), "bar/shapeless/Poly8.class")
+    testShading(
+      Paths.get(shapelessJar),
+      resetTimestamp = false,
+      expectedClass = expectedShapelessClass,
+      expectedSha = "b0675ab6b2171faad08de45ccbc4674df569e03b434745ebd9e7442cd7846796"
+    )
   }
 
-  def testShading(inJar: Path, expectedClass: String): Unit = {
+  test("shade shapeless (resetTimestamp)") {
+    testShading(
+      Paths.get(shapelessJar),
+      resetTimestamp = true,
+      expectedClass = expectedShapelessClass,
+      expectedSha = "68ac892591bb30eb2ba5c0c2c3195e7529e15bacd221b8bb3d75b154f5a4ce76"
+    )
+  }
+
+  def testShading(
+      inJar: Path,
+      resetTimestamp: Boolean,
+      expectedClass: String,
+      expectedSha: String
+  ): Unit = {
     val tempJar = Files.createTempFile("test", ".jar")
     Files.delete(tempJar)
-    val rules = Paths.get("example/shade.rules")
-    new Main().process(rules, inJar, tempJar)
+    val rules = Shader.parseRulesFile(Paths.get("example/shade.rules"))
+    Shader.shadeFile(
+      rules,
+      inJar,
+      tempJar,
+      verbose = false,
+      skipManifest = false,
+      resetTimestamp
+    )
     val entries = Zip.list(tempJar).map(_._1)
     assert(entries.contains(expectedClass))
+    val actualSha = Zip.sha256(tempJar)
+    assert(actualSha == expectedSha)
   }
 }

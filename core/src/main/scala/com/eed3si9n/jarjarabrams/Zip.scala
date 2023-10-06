@@ -4,6 +4,7 @@ import com.eed3si9n.jarjar.util.EntryStruct
 import java.nio.file.{ Files, NoSuchFileException, Path }
 import java.nio.file.attribute.FileTime
 import java.io.{ ByteArrayOutputStream, FileNotFoundException, InputStream, OutputStream }
+import java.security.MessageDigest
 import java.util.jar.JarEntry
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
@@ -51,7 +52,7 @@ object Zip {
       val tempJar = Files.createTempFile("jarjar", ".jar")
       Using.jarOutputStream(tempJar) { out =>
         val names = new mutable.HashSet[String]
-        in.entries.asScala.toList.foreach { entry0 =>
+        in.entries.asScala.foreach { entry0 =>
           val struct0 = entryStruct(
             entry0.getName,
             entry0.getTime,
@@ -189,4 +190,23 @@ object Zip {
   def createDirectories(p: Path): Unit =
     if (Files.exists(p)) ()
     else Files.createDirectories(p)
+
+  def sha256(p: Path): String =
+    Using.fileInputStream(p) { in =>
+      val digest = MessageDigest.getInstance("SHA-256")
+      val hash = digest.digest(toByteArray(in))
+      toHex(hash)
+    }
+
+  private def toHex(bytes: Array[Byte]): String = {
+    val buffer = new StringBuilder(bytes.length * 2)
+    for { i <- bytes.indices } {
+      val hex = Integer.toHexString(bytes(i) & 0xff)
+      if (hex.length() == 1) {
+        buffer.append('0')
+      }
+      buffer.append(hex)
+    }
+    buffer.toString
+  }
 }

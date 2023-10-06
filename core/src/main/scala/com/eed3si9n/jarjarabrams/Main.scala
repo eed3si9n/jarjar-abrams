@@ -1,8 +1,7 @@
 package com.eed3si9n.jarjarabrams
 
-import com.eed3si9n.jarjar.{ MainUtil, RulesFileParser }
-import java.nio.file.Path;
-import scala.collection.JavaConverters._
+import com.eed3si9n.jarjar.MainUtil
+import java.nio.file.Path
 
 class Main {
   def help(): Unit = Main.printHelp()
@@ -11,11 +10,6 @@ class Main {
     if (rulesFile == null || inJar == null || outJar == null) {
       throw new IllegalArgumentException("rulesFile, inJar, and outJar are required");
     }
-    val rules = RulesFileParser
-      .parse(rulesFile.toFile)
-      .asScala
-      .toList
-      .map(Shader.toShadeRule)
     val verbose = java.lang.Boolean.getBoolean("verbose")
     val skipManifest = java.lang.Boolean.getBoolean("skipManifest")
     val resetTimestamp = sys.props.get("resetTimestamp") match {
@@ -23,7 +17,7 @@ class Main {
       case None    => true
     }
     Shader.shadeFile(
-      rules,
+      Shader.parseRulesFile(rulesFile),
       inJar,
       outJar,
       verbose,
