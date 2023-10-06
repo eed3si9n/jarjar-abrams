@@ -39,7 +39,8 @@ object Using {
   val jarFile: Using[Path, JarFile] =
     file(f => new JarFile(f.toFile))
   val zipInputStream = wrap((in: InputStream) => new ZipInputStream(in))
-  def digestInputStream(digest: MessageDigest) = wrap((in: InputStream) => new DigestInputStream(in, digest))
+  def digestInputStream(digest: MessageDigest) =
+    wrap((in: InputStream) => new DigestInputStream(in, digest))
 
   def file[A1 <: AutoCloseable](action: Path => A1): Using[Path, A1] =
     file(action, closeCloseable)
