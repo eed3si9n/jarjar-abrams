@@ -13,7 +13,7 @@ object Shader {
       outputJar: Path,
       verbose: Boolean,
       skipManifest: Boolean,
-      resetTimestamp: Boolean,
+      resetTimestamp: Boolean
   ): Unit = {
     val shader = bytecodeShader(rules, verbose, skipManifest)
     Zip.flatMap(inputJar, outputJar, resetTimestamp) { struct0 =>

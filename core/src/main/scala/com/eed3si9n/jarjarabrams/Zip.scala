@@ -59,7 +59,7 @@ object Zip {
               transfer(in.getInputStream(entry0), baos)
               baos.toByteArray()
             },
-            false,
+            false
           )
           f(struct0) match {
             case Some(struct) =>
@@ -121,7 +121,7 @@ object Zip {
       name: String,
       time: Long,
       data: Array[Byte],
-      skipTransform: Boolean = false,
+      skipTransform: Boolean = false
   ): EntryStruct = {
     val struct = new EntryStruct()
     struct.name = name
