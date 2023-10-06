@@ -3,6 +3,7 @@ package testpkg
 import verify._
 import java.nio.file.{ Files, Path, Paths }
 import com.eed3si9n.jarjarabrams.{ Shader, Zip }
+import scala.sys.process.Process
 
 object ShaderTest extends BasicTestSuite {
   final val byteBuddyJar = "example/byte-buddy-agent.jar"
@@ -15,7 +16,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(byteBuddyJar),
       resetTimestamp = false,
       expectedClass = expectedByteBuddyClass,
-      expectedSha = "6e7372e52e3b2e981ffa42fc29d5cec1cc84431972d45fb51d605210e11c3ebd"
+      expectedSha = "673a5b1d7282ec68def6d6e6845c29d96142e4e3b39796484e122cd92f65edee"
     )
   }
 
@@ -65,6 +66,8 @@ object ShaderTest extends BasicTestSuite {
     )
     val entries = Zip.list(tempJar).map(_._1)
     assert(entries.contains(expectedClass))
+    val lines = Process(s"unzip -l $tempJar").!!.linesIterator.toList.take(10)
+    lines.foreach(println)
     val actualSha = Zip.sha256(tempJar)
     assert(actualSha == expectedSha)
   }

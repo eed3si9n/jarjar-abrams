@@ -30,7 +30,7 @@ object Zip {
   // ---------  ---------- -----   ----
   //         0  00-00-1980 04:08   META-INF/
   //       988  00-00-1980 04:08   META-INF/MANIFEST.MF
-  private final val minimumTimestamp = 315705600L
+  private final val minimumTimestamp = 315705600000L
 
   def list(inputJar: Path): List[(String, Long)] =
     Using.jarFile(inputJar) { in =>
