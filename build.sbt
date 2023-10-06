@@ -127,7 +127,8 @@ lazy val core = project
 
     Compile / scalacOptions += "-deprecation"
     Compile / scalacOptions ++= {
-      if (scalaVersion.value.startsWith("2.12.")) Vector("-Xlint", "-Xfatal-warnings")
+      if (scalaVersion.value.startsWith("2.13.")) Vector("-Xlint", "-Xsource:3")
+      else if (scalaVersion.value.startsWith("2.12.")) Vector("-Xlint", "-Xfatal-warnings")
       else Vector("-Xlint")
     }
   })

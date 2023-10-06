@@ -33,33 +33,30 @@ object Zip {
 
   def list(inputJar: Path): List[(String, Long)] =
     Using.jarFile(inputJar) { in =>
-      in.entries.asScala.toList.map { entry =>
-        (entry.getName, entry.getTime)
-      }
+      in.entries.asScala
+        .map(entry => (entry.getName, entry.getTime))
+        .toList
     }
 
   /**
    * Treating JAR file as a set of EntryStruct, this implements a
    * functional processing, intended for in-memory shading.
    */
-  def flatMap(
+  def transformJarFile(
       inputJar: Path,
       outputJar: Path,
       resetTimestamp: Boolean
   )(f: EntryStruct => Option[EntryStruct]): Path =
     Using.jarFile(inputJar) { in =>
       val tempJar = Files.createTempFile("jarjar", ".jar")
-      val names = new mutable.HashSet[String]
       Using.jarOutputStream(tempJar) { out =>
+        val names = new mutable.HashSet[String]
         in.entries.asScala.toList.foreach { entry0 =>
           val struct0 = entryStruct(
             entry0.getName,
-            entry0.getTime, {
-              val baos = new ByteArrayOutputStream()
-              transfer(in.getInputStream(entry0), baos)
-              baos.toByteArray()
-            },
-            false
+            entry0.getTime,
+            toByteArray(in.getInputStream(entry0)),
+            skipTransform = false
           )
           f(struct0) match {
             case Some(struct) =>
@@ -181,6 +178,12 @@ object Zip {
     } finally {
       if (close) in.close
     }
+  }
+
+  private def toByteArray(in: InputStream): Array[Byte] = {
+    val baos = new ByteArrayOutputStream()
+    transfer(in, baos)
+    baos.toByteArray()
   }
 
   def createDirectories(p: Path): Unit =
