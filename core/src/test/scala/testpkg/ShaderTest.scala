@@ -53,7 +53,6 @@ object ShaderTest extends BasicTestSuite {
       expectedSha: String
   ): Unit = {
     val tempJar = Files.createTempFile("test", ".jar")
-    Files.delete(tempJar)
     val rules = Shader.parseRulesFile(Paths.get("example/shade.rules"))
     Shader.shadeFile(
       rules,

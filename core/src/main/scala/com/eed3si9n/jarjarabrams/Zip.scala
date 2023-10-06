@@ -1,7 +1,7 @@
 package com.eed3si9n.jarjarabrams
 
 import com.eed3si9n.jarjar.util.EntryStruct
-import java.nio.file.{ Files, NoSuchFileException, Path }
+import java.nio.file.{ Files, NoSuchFileException, Path, StandardCopyOption }
 import java.nio.file.attribute.FileTime
 import java.io.{ ByteArrayOutputStream, FileNotFoundException, InputStream, OutputStream }
 import java.security.MessageDigest
@@ -79,10 +79,7 @@ object Zip {
           }
         }
       }
-      if (Files.exists(outputJar)) {
-        Files.delete(outputJar)
-      }
-      Files.copy(tempJar, outputJar)
+      Files.move(tempJar, outputJar, StandardCopyOption.REPLACE_EXISTING)
       resetModifiedTime(outputJar)
       outputJar
     }
