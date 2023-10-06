@@ -58,7 +58,7 @@ class JJProcessor(
   val renamer: String => Option[String] = {
     val wildcards = PatternElement.createWildcards(ruleList.asJava).asScala
 
-    value: String => {
+    (value: String) => {
       val result = wildcards.flatMap { wc =>
         val slashed = value.replace('.', '/') // The jarjar wildcards expect slashes instead of dots
         // Hack to replace the package object name.

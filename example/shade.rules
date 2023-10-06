@@ -1,1 +1,2 @@
 rule net.bytebuddy.agent.** foo.@1
+rule shapeless.** bar.shapeless.@1

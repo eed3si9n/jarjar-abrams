@@ -3,7 +3,7 @@ package com.eed3si9n.jarjarabrams
 import java.nio.file.{ Files, Path, StandardOpenOption }
 import com.eed3si9n.jarjar.{ JJProcessor, _ }
 import com.eed3si9n.jarjar.util.EntryStruct
-import Zip.{ createDirectories, resetModifiedTime }
+import Zip.createDirectories
 import scala.collection.JavaConverters._
 
 object Shader {
@@ -12,27 +12,16 @@ object Shader {
       inputJar: Path,
       outputJar: Path,
       verbose: Boolean,
-      skipManifest: Boolean
+      skipManifest: Boolean,
+      resetTimestamp: Boolean
   ): Unit = {
-    val tempDir = Files.createTempDirectory("jarjar-in")
-    val outDir = Files.createTempDirectory("jarjar-out")
-    val tempJar = Files.createTempFile("jarjar", ".jar")
-    Zip.unzip(inputJar, tempDir)
-    shadeDirectory(
-      rules,
-      outDir,
-      makeMappings(tempDir),
-      verbose = verbose,
-      skipManifest = skipManifest
-    )
-    Zip.zip(makeMappings(outDir), tempJar)
-    resetModifiedTime(tempJar)
-    if (Files.exists(outputJar)) {
-      Files.delete(outputJar)
+    val shader = bytecodeShader(rules, verbose, skipManifest)
+    Zip.transformJarFile(inputJar, outputJar, resetTimestamp) { struct0 =>
+      shader(struct0.data, struct0.name).map {
+        case (shadedBytes, shadedName) =>
+          Zip.entryStruct(shadedName, struct0.time, shadedBytes, struct0.skipTransform)
+      }
     }
-    createDirectories(outputJar.getParent)
-    Files.copy(tempJar, outputJar)
-    resetModifiedTime(outputJar)
   }
 
   def makeMappings(dir: Path): List[(Path, String)] =
@@ -132,6 +121,9 @@ object Shader {
         else
           None
     }
+
+  def parseRulesFile(rulesFile: Path): List[ShadeRule] =
+    RulesFileParser.parse(rulesFile.toFile()).asScala.map(toShadeRule).toList
 
   def toShadeRule(rule: PatternElement): ShadeRule =
     rule match {
