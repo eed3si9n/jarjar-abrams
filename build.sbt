@@ -96,7 +96,7 @@ lazy val jarjar_assembly = project
 
 lazy val jarjar_abrams_assembly = project
   .settings(nocomma {
-    crossScalaVersions := Vector(scala212, scala213, scala211, scala210)
+    crossScalaVersions := Vector(scala212, scala213)
     name := "jarjar-abrams-assembly"
     Compile / packageBin := (core / assembly).value
   })
@@ -107,7 +107,7 @@ lazy val core = project
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
-    crossScalaVersions := Vector(scala212, scala213, scala211, scala210)
+    crossScalaVersions := Vector(scala212, scala213)
 
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2.10.")) Nil
