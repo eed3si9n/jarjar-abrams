@@ -192,13 +192,16 @@ object Zip {
     else Files.createDirectories(p)
 
   def sha256(p: Path): String =
-    Using.fileInputStream(p) { in =>
+    Using.fileInputStream(p) { in0 =>
       val digest = MessageDigest.getInstance("SHA-256")
-      val hash = digest.digest(toByteArray(in))
-      toHex(hash)
+      Using.digestInputStream(digest)(in0) { in =>
+        val out: OutputStream = (b: Int) => ()
+        transfer(in, out)
+      }
+      toHexString(digest.digest())
     }
 
-  private def toHex(bytes: Array[Byte]): String = {
+  private def toHexString(bytes: Array[Byte]): String = {
     val buffer = new StringBuilder(bytes.length * 2)
     for { i <- bytes.indices } {
       val hex = Integer.toHexString(bytes(i) & 0xff)
