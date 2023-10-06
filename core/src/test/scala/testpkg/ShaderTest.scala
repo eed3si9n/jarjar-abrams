@@ -2,7 +2,7 @@ package testpkg
 
 import verify._
 import java.nio.file.{ Files, Path, Paths }
-import com.eed3si9n.jarjarabrams.{ Main, Shader, Zip }
+import com.eed3si9n.jarjarabrams.{ Main, Zip }
 
 object ShaderTest extends BasicTestSuite {
   test("shade bytebuddy") {
@@ -15,11 +15,10 @@ object ShaderTest extends BasicTestSuite {
 
   def testShading(inJar: Path, expectedClass: String): Unit = {
     val tempJar = Files.createTempFile("test", ".jar")
+    Files.delete(tempJar)
     val rules = Paths.get("example/shade.rules")
     new Main().process(rules, inJar, tempJar)
-    val tempDir = Files.createTempDirectory("jarjartest")
-    Zip.unjar(tempJar, tempDir)
-    val entries = Shader.makeMappings(tempDir).map(_._2)
+    val entries = Zip.list(tempJar).map(_._1)
     assert(entries.contains(expectedClass))
   }
 }

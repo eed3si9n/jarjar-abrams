@@ -10,6 +10,7 @@ import java.io.{
   OutputStream
 }
 import java.nio.file.{ Files, Path }
+import java.util.jar.{ JarFile, JarOutputStream }
 import java.util.zip.ZipInputStream
 import scala.util.control.NonFatal
 import scala.reflect.ClassTag
@@ -30,9 +31,12 @@ abstract class Using[Source, A] {
 object Using {
   def fileOutputStream(append: Boolean): Using[Path, OutputStream] =
     file(f => new BufferedOutputStream(new FileOutputStream(f.toFile, append)))
+  val jarOutputStream: Using[Path, JarOutputStream] =
+    file(f => new JarOutputStream(new BufferedOutputStream(new FileOutputStream(f.toFile))))
   val fileInputStream: Using[Path, InputStream] =
     file(f => new BufferedInputStream(new FileInputStream(f.toFile)))
-
+  val jarFile: Using[Path, JarFile] =
+    file(f => new JarFile(f.toFile))
   val zipInputStream = wrap((in: InputStream) => new ZipInputStream(in))
 
   def file[A1 <: AutoCloseable](action: Path => A1): Using[Path, A1] =

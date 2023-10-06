@@ -17,8 +17,19 @@ class Main {
       .toList
       .map(Shader.toShadeRule)
     val verbose = java.lang.Boolean.getBoolean("verbose")
-    val skipManifest = java.lang.Boolean.getBoolean("skipManifest");
-    Shader.shadeFile(rules, inJar, outJar, verbose, skipManifest)
+    val skipManifest = java.lang.Boolean.getBoolean("skipManifest")
+    val resetTimestamp = sys.props.get("resetTimestamp") match {
+      case Some(_) => java.lang.Boolean.getBoolean("resetTimestamp")
+      case None    => true
+    }
+    Shader.shadeFile(
+      rules,
+      inJar,
+      outJar,
+      verbose,
+      skipManifest,
+      resetTimestamp,
+    )
   }
 }
 
