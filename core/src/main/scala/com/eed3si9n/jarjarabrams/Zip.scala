@@ -1,6 +1,6 @@
 package com.eed3si9n.jarjarabrams
 
-import com.eed3si9n.jarjar.util.EntryStruct
+import com.eed3si9n.jarjar.util.{ DuplicateJarEntryException, EntryStruct }
 import java.nio.file.{ Files, NoSuchFileException, Path, StandardCopyOption }
 import java.nio.file.attribute.FileTime
 import java.io.{ ByteArrayOutputStream, FileNotFoundException, InputStream, OutputStream }
@@ -46,7 +46,8 @@ object Zip {
   def transformJarFile(
       inputJar: Path,
       outputJar: Path,
-      resetTimestamp: Boolean
+      resetTimestamp: Boolean,
+      warnOnDuplicateClass: Boolean
   )(f: EntryStruct => Option[EntryStruct]): Path =
     Using.jarFile(inputJar) { in =>
       val tempJar = Files.createTempFile("jarjar", ".jar")
@@ -72,8 +73,11 @@ object Zip {
                 out.write(struct.data)
               } else if (struct.name.endsWith("/")) ()
               else {
-                // duplicate entry
-                // throw?
+                if (warnOnDuplicateClass)
+                  Console.err.println(
+                    s"in ${inputJar}, found duplicate files with name: ${struct.name}, ignoring due to specified option"
+                  )
+                else throw new DuplicateJarEntryException(inputJar.toString, struct.name)
               }
             case None => ()
           }

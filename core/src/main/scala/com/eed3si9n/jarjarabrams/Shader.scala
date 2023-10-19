@@ -13,10 +13,11 @@ object Shader {
       outputJar: Path,
       verbose: Boolean,
       skipManifest: Boolean,
-      resetTimestamp: Boolean
+      resetTimestamp: Boolean,
+      warnOnDuplicateClass: Boolean
   ): Unit = {
     val shader = bytecodeShader(rules, verbose, skipManifest)
-    Zip.transformJarFile(inputJar, outputJar, resetTimestamp) { struct0 =>
+    Zip.transformJarFile(inputJar, outputJar, resetTimestamp, warnOnDuplicateClass) { struct0 =>
       shader(struct0.data, struct0.name).map {
         case (shadedBytes, shadedName) =>
           Zip.entryStruct(shadedName, struct0.time, shadedBytes, struct0.skipTransform)

@@ -16,13 +16,15 @@ class Main {
       case Some(_) => java.lang.Boolean.getBoolean("resetTimestamp")
       case None    => true
     }
+    val warnOnDuplicateClass = java.lang.Boolean.getBoolean("duplicateClassToWarn")
     Shader.shadeFile(
       Shader.parseRulesFile(rulesFile),
       inJar,
       outJar,
       verbose,
       skipManifest,
-      resetTimestamp
+      resetTimestamp,
+      warnOnDuplicateClass
     )
   }
 }

@@ -60,7 +60,8 @@ object ShaderTest extends BasicTestSuite {
       tempJar,
       verbose = false,
       skipManifest = false,
-      resetTimestamp
+      resetTimestamp,
+      warnOnDuplicateClass = false
     )
     val entries = Zip.list(tempJar).map(_._1)
     assert(entries.contains(expectedClass))
