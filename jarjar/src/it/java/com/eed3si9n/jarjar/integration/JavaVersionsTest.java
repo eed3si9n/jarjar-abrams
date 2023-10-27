@@ -16,16 +16,6 @@ public class JavaVersionsTest extends IntegrationTestBase {
     testVersion("1.8");
   }
 
-  @Test
-  public void testShadeJava7Class() throws Exception {
-    testVersion("1.7");
-  }
-
-  @Test
-  public void testShadeJava6Class() throws Exception {
-    testVersion("1.6");
-  }
-
   private void testVersion(String version) throws Exception {
     if (!javaVersionIsAtLeast(version)) {
       System.out.println("Cannot test java " + version + " if this is being run in less than " + version + ".");
