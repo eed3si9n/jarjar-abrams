@@ -1,5 +1,5 @@
 ThisBuild / organization := "com.example"
-ThisBuild / scalaVersion := "2.12.11"
+ThisBuild / scalaVersion := "2.12.18"
 
 lazy val shadedJawn = project
   .enablePlugins(JarjarAbramsPlugin)

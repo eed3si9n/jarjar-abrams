@@ -159,7 +159,7 @@ public class BadPackagesTest extends IntegrationTestBase {
     String[] paths = sourcePaths.toArray(new String[sourcePaths.size()]);
 
     File folder = createTree(files);
-    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "1.8", "-target", "1.8"));
 
     for (String className : classNameMap.keySet()) {
       String dstName = classNameMap.get(className).replaceAll("[.]", "/") + ".class";
@@ -212,14 +212,14 @@ public class BadPackagesTest extends IntegrationTestBase {
     String[] paths = { sourcePath };
 
     File folder = createTree(files);
-    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "1.8", "-target", "1.8"));
 
     File srcFile = new File(folder + File.separator + binaryPath);
     File dstFile = new File(folder + File.separator + "oldversion" + File.separator + binaryPath);
     dstFile.getParentFile().mkdirs();
     srcFile.renameTo(dstFile);
 
-    Assert.assertTrue(tryCompile(folder, paths, "-source", "6", "-target", "6"));
+    Assert.assertTrue(tryCompile(folder, paths, "-source", "1.8", "-target", "1.8"));
 
     for (String file : new FileTree(folder)) {
       if (file.endsWith(".java")) {
