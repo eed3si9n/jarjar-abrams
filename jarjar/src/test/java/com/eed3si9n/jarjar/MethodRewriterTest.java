@@ -19,7 +19,7 @@ public class MethodRewriterTest extends TestCase {
 
     private static class VerifyingMethodVisitor extends MethodVisitor {
       private VerifyingMethodVisitor() {
-        super(Opcodes.ASM7);
+        super(Opcodes.ASM9);
       }
 
       @Override
@@ -32,7 +32,7 @@ public class MethodRewriterTest extends TestCase {
     }
 
     private VerifyingClassVisitor() {
-      super(Opcodes.ASM7);
+      super(Opcodes.ASM9);
     }
 
     @Override

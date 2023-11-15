@@ -65,7 +65,7 @@ public class MethodSignatureProcessor implements JarProcessor {
       private boolean rewriteNextLdcInstruction = false;
 
       private MethodSignatureRemapperMethodVisitor(MethodVisitor methodVisitor) {
-        super(Opcodes.ASM7, methodVisitor);
+        super(Opcodes.ASM9, methodVisitor);
       }
 
       private boolean shouldMarkNextLdcForRewrite(int opcode, String name) {
@@ -97,7 +97,7 @@ public class MethodSignatureProcessor implements JarProcessor {
     }
 
     public MethodSignatureRemapperClassVisitor(ClassVisitor classVisitor) {
-      super(Opcodes.ASM7, classVisitor);
+      super(Opcodes.ASM9, classVisitor);
     }
 
     @Override
