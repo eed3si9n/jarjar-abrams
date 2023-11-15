@@ -8,7 +8,7 @@ import org.objectweb.asm.{ AnnotationVisitor, ClassVisitor, Opcodes }
 import scala.reflect.internal.pickling.ByteCodecs
 
 class ScalaSigClassVisitor(cv: ClassVisitor, renamer: String => Option[String])
-    extends ClassVisitor(Opcodes.ASM7, cv) {
+    extends ClassVisitor(Opcodes.ASM9, cv) {
 
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
     if (descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;") {
@@ -23,7 +23,7 @@ class ScalaSigAnnotationVisitor(
     visible: Boolean,
     cv: ClassVisitor,
     renamer: String => Option[String]
-) extends AnnotationVisitor(Opcodes.ASM7) {
+) extends AnnotationVisitor(Opcodes.ASM9) {
   import ScalaSigAnnotationVisitor._
 
   private val MaxStringSizeInBytes = 65535
