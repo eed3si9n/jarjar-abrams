@@ -2,13 +2,19 @@ package testpkg
 
 import verify._
 import java.nio.file.{ Files, Path, Paths }
-import com.eed3si9n.jarjarabrams.{ Shader, Zip }
+import com.eed3si9n.jarjarabrams.{ ShadeRule, Shader, Zip }
+import buildinfo.BuildInfo.shaderTest
+import java.util.jar.JarFile
+import java.util.zip.ZipEntry
+
 
 object ShaderTest extends BasicTestSuite {
   final val byteBuddyJar = "example/byte-buddy-agent.jar"
   final val shapelessJar = "example/shapeless_2.12-2.3.2.jar"
   final val expectedByteBuddyClass = "foo/Attacher.class"
   final val expectedShapelessClass = "bar/shapeless/Poly8.class"
+
+  val calcite = new JarFile(shaderTest.find(_.getName.contains("calcite")).get)
 
   test("shade bytebuddy") {
     testShading(
@@ -44,6 +50,21 @@ object ShaderTest extends BasicTestSuite {
       expectedClass = expectedShapelessClass,
       expectedSha = "68ac892591bb30eb2ba5c0c2c3195e7529e15bacd221b8bb3d75b154f5a4ce76"
     )
+  }
+
+  test("shade calcite") {
+    val problematicClassfile = "org/apache/calcite/runtime/SqlFunctions.class"
+    val input = calcite.getInputStream(new ZipEntry(problematicClassfile))
+    val shadeRules = Seq(
+      ShadeRule.rename("com.google.guava.**" -> s"new_guava.com.google.guava.@1").inAll
+    )
+    val bytecodeShader = Shader.bytecodeShader(
+      shadeRules,
+      verbose = false,
+      skipManifest = false,
+    )
+    val shadeResult = bytecodeShader(input.readAllBytes, problematicClassfile)
+    println(shadeResult)
   }
 
   def testShading(
