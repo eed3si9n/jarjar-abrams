@@ -1,11 +1,9 @@
-package testpkg
+package com.eed3si9n.jarjar
 
 import buildinfo.BuildInfo.shaderTest
-import com.eed3si9n.jarjarabrams.{ ShadeRule, Shader }
 import java.io.{DataInputStream, InputStream}
 import java.util.jar.JarFile
 import java.util.zip.ZipEntry
-import org.objectweb.asm.{ClassWriter, ClassReader, ClassVisitor, Opcodes}
 import verify._
 
 object CalciteShaderTest extends BasicTestSuite {
@@ -15,7 +13,7 @@ object CalciteShaderTest extends BasicTestSuite {
   final val expectedShapelessClass = "bar/shapeless/Poly8.class"
 
   val calcitePath = shaderTest.find(_.getName.contains("calcite")).get
-  println(calcitePath)
+  // println(calcitePath)
   val problematicClassfile = "org/apache/calcite/runtime/SqlFunctions.class"
 
   def sqlFunctionsBytecode = {
@@ -30,25 +28,58 @@ object CalciteShaderTest extends BasicTestSuite {
     bytes
   }
 
-  test("shade calcite") {
-    val shadeRules = Seq(
-      ShadeRule.rename("com.google.guava.**" -> s"new_guava.com.google.guava.@1").inAll
-    )
-    val bytecodeShader = Shader.bytecodeShader(
-      shadeRules,
-      verbose = false,
-      skipManifest = false,
-    )
-    val shadeResult = bytecodeShader(sqlFunctionsBytecode, problematicClassfile)
-    println(shadeResult)
-  }
+
+  // test("shade calcite") {
+  //   import com.eed3si9n.jarjarabrams.Shader
+  //   import com.eed3si9n.jarjarabrams.ShadeRule
+  //   val ruleList = Seq(
+  //     ShadeRule.rename("com.google.guava.**" -> "new_guava.com.google.guava.@1").inAll
+  //   )
+  //   val bytecodeShader = Shader.bytecodeShader(
+  //     ruleList,
+  //     verbose = true,
+  //     skipManifest = false,
+  //   )
+  //   val shadeResult = bytecodeShader(sqlFunctionsBytecode, problematicClassfile)
+  //   println(shadeResult)
+  // }
 
   test("is the problem asm ClassReader?") {
-    val classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
-    val reader = new ClassReader(sqlFunctionsBytecode)
-    val visitor = new ClassVisitor(Opcodes.ASM9, classWriter) {
 
+    import org.objectweb.asm.{
+      ClassReader,
+      ClassVisitor,
+      ClassWriter, 
+      Opcodes,
     }
-    reader.accept(visitor, ClassReader.EXPAND_FRAMES)
+    import org.objectweb.asm.commons.{
+      ClassRemapper,
+      Remapper
+    }
+    import com.eed3si9n.jarjar.util.{
+      GetNameClassWriter
+    }
+    
+    val remapper = new Remapper() {}
+    val emptyClassVisitor = new EmptyClassVisitor
+    
+    val classRepmapper = new ClassRemapper(emptyClassVisitor, remapper) {
+      def setTarget(target: ClassVisitor) {
+        cv = target
+      }
+    }
+    
+    val reader = new ClassReader(sqlFunctionsBytecode)
+    val writer = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS)
+
+    classRepmapper.setTarget(writer)
+    reader.accept(classRepmapper, ClassReader.EXPAND_FRAMES)
+    val outputBytes = writer.toByteArray()
+
+
+    val reader2 = new ClassReader(outputBytes)
+    val classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS)
+    val visitor = new ClassVisitor(Opcodes.ASM9, classWriter) {}
+    reader2.accept(visitor, ClassReader.EXPAND_FRAMES)
   }
 }
