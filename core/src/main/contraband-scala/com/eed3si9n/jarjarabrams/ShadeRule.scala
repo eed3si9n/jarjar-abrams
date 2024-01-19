@@ -42,6 +42,7 @@ object ShadeRule {
   def rename(patterns: (String, String)*): ShadePattern = Rename(patterns.toSeq.toList)
   def moveUnder(from: String, to: String): ShadePattern = rename(s"$from.**" -> s"$to.$from.@1")
   def zap(patterns: String*): ShadePattern = Zap(patterns.toSeq.toList)
+  def zapFile(patterns: String*): ShadePattern = ZapFile(patterns.toSeq.toList)
   def keep(patterns: String*): ShadePattern = Keep(patterns.toSeq.toList)
   def apply(shadePattern: com.eed3si9n.jarjarabrams.ShadePattern, targets: Vector[ShadeTarget]): ShadeRule = new ShadeRule(shadePattern, targets)
 }

@@ -59,6 +59,7 @@ Rules file format:
 
     rule <pattern> <result>
     zap <pattern>
+    zapFile <filepattern>
     keep <pattern>
 
   The standard rule ("rule") is used to rename classes. All references
@@ -70,6 +71,11 @@ Rules file format:
   package component (by excluding "." from the match), a single "*" may
   be used instead.
 
+  <filepattern> is a file name with optional wildcards. "**" will
+  match against any valid file name substring. To match a single
+  package component (by excluding "/" from the match), a single "*" may
+  be used instead.
+
   <result> is a class name which can optionally reference the
   substrings matched by the wildcards. A numbered reference is available
   for every "*" or "**" in the <pattern>, starting from left to
@@ -78,6 +84,9 @@ Rules file format:
 
   The "zap" rule causes any matched class to be removed from the resulting
   jar file. All zap rules are processed before renaming rules.
+
+  The "zapFile" rule causes any matched file paths to be removed from the
+  resulting jar file.  All zapFile rules are processed before renaming rules.
 
   The "keep" rule marks all matched classes as "roots". If any keep
   rules are defined all classes which are not reachable from the roots
