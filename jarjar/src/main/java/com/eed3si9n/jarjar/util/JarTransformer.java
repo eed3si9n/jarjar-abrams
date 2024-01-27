@@ -19,13 +19,20 @@ package com.eed3si9n.jarjar.util;
 import java.io.*;
 
 import static com.eed3si9n.jarjar.misplaced.MisplacedClassProcessor.VERSIONED_CLASS_FOLDER;
+
+import com.eed3si9n.jarjar.TracingRemapper;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.Remapper;
 
-abstract public class JarTransformer implements JarProcessor {
+abstract public class JarTransformer extends RemappingJarProcessor {
 
-    public boolean process(EntryStruct struct) throws IOException {
+    public JarTransformer(TracingRemapper remapper) {
+        super(remapper);
+    }
+
+    public boolean processImpl(EntryStruct struct, Remapper remapper) throws IOException {
         if (struct.name.endsWith(".class") && !struct.skipTransform) {
             ClassReader reader;
             try {
@@ -38,7 +45,7 @@ abstract public class JarTransformer implements JarProcessor {
 
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
             try {
-                reader.accept(transform(w), ClassReader.EXPAND_FRAMES);
+                reader.accept(transform(w, remapper), ClassReader.EXPAND_FRAMES);
             } catch (RuntimeException e) {
                 throw new IOException("Unable to transform " + struct.name, e);
             }
@@ -51,7 +58,7 @@ abstract public class JarTransformer implements JarProcessor {
         return true;
     }
 
-    abstract protected ClassVisitor transform(ClassVisitor v);
+    abstract protected ClassVisitor transform(ClassVisitor v, Remapper remapper);
 
     private static String pathFromName(String className) {
         return className.replace('.', '/') + ".class";

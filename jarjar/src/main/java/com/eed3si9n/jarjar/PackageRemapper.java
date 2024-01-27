@@ -21,7 +21,7 @@ import org.objectweb.asm.commons.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
-class PackageRemapper extends Remapper
+class PackageRemapper extends TracingRemapper
 {
     private static final String RESOURCE_SUFFIX = "RESOURCE";
     
@@ -29,14 +29,23 @@ class PackageRemapper extends Remapper
         = Pattern.compile("\\[L[\\p{javaJavaIdentifierPart}\\.]+?;");
 
     private final List<Wildcard> wildcards;
+    private final List<Rule> ruleList;
     private final Map<String, String> typeCache = new HashMap<String, String>();
     private final Map<String, String> pathCache = new HashMap<String, String>();
     private final Map<Object, String> valueCache = new HashMap<Object, String>();
     private final boolean verbose;
+    private boolean modified = false;
+
 
     public PackageRemapper(List<Rule> ruleList, boolean verbose) {
         this.verbose = verbose;
+        this.ruleList = ruleList;
         wildcards = PatternElement.createWildcards(ruleList);
+    }
+
+    @Override
+    public TracingRemapper copy() {
+        return new PackageRemapper(this.ruleList, this.verbose);
     }
 
     // also used by KeepProcessor
@@ -130,9 +139,17 @@ class PackageRemapper extends Remapper
     private String replaceHelper(String value) {
         for (Wildcard wildcard : wildcards) {
             String test = wildcard.replace(value);
-            if (test != null)
+            if (test != null) {
+                if (!test.equals(value))
+                    this.modified = true;
                 return test;
+            }
         }
         return value;
+    }
+
+    @Override
+    public boolean hasChanges() {
+        return modified;
     }
 }

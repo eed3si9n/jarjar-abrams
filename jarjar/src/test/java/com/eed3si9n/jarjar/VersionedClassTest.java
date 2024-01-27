@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.Remapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,13 +38,15 @@ extends TestCase
         String expectedName = Example.class.getName().replace("jarjar", "jarjarabrams");
         struct.name = MisplacedClassProcessor.VERSIONED_CLASS_FOLDER + "9/" + toClassPath(originalName);
         struct.data = getClassBytes(originalName);
-        JarTransformer transformer = new JarTransformer() {
+
+        Rule rule = new Rule();
+        rule.setPattern(originalName);
+        rule.setResult(expectedName);
+        PackageRemapper remapper = new PackageRemapper(Arrays.asList(rule), false);
+
+        JarTransformer transformer = new JarTransformer(remapper) {
             @Override
-            protected ClassVisitor transform(ClassVisitor v) {
-                Rule rule = new Rule();
-                rule.setPattern(originalName);
-                rule.setResult(expectedName);
-                PackageRemapper remapper = new PackageRemapper(Arrays.asList(rule), false);
+            protected ClassVisitor transform(ClassVisitor v, Remapper remapper) {
                 return new ClassRemapper(v, remapper);
             }
         };
