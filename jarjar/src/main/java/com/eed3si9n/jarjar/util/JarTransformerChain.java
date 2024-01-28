@@ -31,8 +31,7 @@ public class JarTransformerChain extends JarTransformer
 
     protected ClassVisitor transform(ClassVisitor parent, Remapper remapper) {
         for (int i = chain.length - 1; i >= 0; i--) {
-            chain[i] = chain[i].update(remapper, parent);
-            parent = chain[i];
+            parent = chain[i].update(remapper, parent);
         }
         return parent;
     }
