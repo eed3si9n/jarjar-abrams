@@ -52,7 +52,8 @@ class JJProcessor(
   processors += new ZapProcessor(zapList.asJava)
   processors += misplacedClassProcessor
   processors += new JarTransformerChain(
-    Array[RemappingClassTransformer](new RemappingClassTransformer()), pr
+    Array[RemappingClassTransformer](new RemappingClassTransformer()),
+    pr
   )
 
   val renamer: String => Option[String] = {
