@@ -60,6 +60,8 @@ public class RulesFileParser
                 element = rule;
             } else if (type.equals("zap")) {
                 element = new Zap();
+            } else if (type.equals("zapFile")) {
+                element = new ZapFile();
             } else if (type.equals("keep")) {
                 element = new Keep();
             } else {

@@ -87,6 +87,12 @@ object Shader {
               jrule.setPattern(pattern)
               jrule
             }
+          case ShadePattern.ZapFile(patterns) =>
+            patterns.map { pattern =>
+              val jrule = new ZapFile
+              jrule.setPattern(pattern)
+              jrule
+            }
           case ShadePattern.Keep(patterns) =>
             patterns.map { pattern =>
               val jrule = new Keep()
@@ -132,6 +138,7 @@ object Shader {
         ShadeRule(ShadeRule.rename((r.getPattern, r.getResult)), Vector(ShadeTarget.inAll))
       case r: Keep => ShadeRule(ShadeRule.keep((r.getPattern)), Vector(ShadeTarget.inAll))
       case r: Zap  => ShadeRule(ShadeRule.zap((r.getPattern)), Vector(ShadeTarget.inAll))
+      case r: ZapFile => ShadeRule(ShadeRule.zapFile((r.getPattern)), Vector(ShadeTarget.inAll))
     }
 }
 
@@ -145,5 +152,6 @@ sealed trait ShadePattern {
 object ShadePattern {
   case class Rename(patterns: List[(String, String)]) extends ShadePattern
   case class Zap(patterns: List[String]) extends ShadePattern
+  case class ZapFile(patterns: List[String]) extends ShadePattern
   case class Keep(patterns: List[String]) extends ShadePattern
 }

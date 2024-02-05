@@ -47,6 +47,7 @@ class MainProcessor implements JarProcessor
                          String misplacedClassStrategy) {
         this.verbose = verbose;
         List<Zap> zapList = new ArrayList<Zap>();
+        List<ZapFile> zapFiles = new ArrayList<>();
         List<Rule> ruleList = new ArrayList<Rule>();
         List<Keep> keepList = new ArrayList<Keep>();
         for (PatternElement pattern : patterns) {
@@ -72,6 +73,7 @@ class MainProcessor implements JarProcessor
             .getProcessorForName(misplacedClassStrategy);
 
         processors.add(new ZapProcessor(zapList));
+        processors.add(new ZapFileProcessor(zapFiles));
         processors.add(misplacedClassProcessor);
         processors.add(new JarTransformerChain(new RemappingClassTransformer[] {
             new RemappingClassTransformer()
