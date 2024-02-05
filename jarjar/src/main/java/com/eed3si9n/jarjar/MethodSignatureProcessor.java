@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.eed3si9n.jarjar.util.RemappingJarProcessor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -20,7 +22,7 @@ import com.eed3si9n.jarjar.util.JarProcessor;
  * being renamed. Method signatures are more difficult to detect so this class keeps track of which
  * methods definitely take method signatures and remaps those explicitly.
  */
-public class MethodSignatureProcessor implements JarProcessor {
+public class MethodSignatureProcessor extends RemappingJarProcessor {
 
   /**
    * List of method names which take a method signature as their parameter.
@@ -30,14 +32,12 @@ public class MethodSignatureProcessor implements JarProcessor {
   private static final Set<String> METHOD_NAMES_WITH_PARAMS_TO_REWRITE =
       new HashSet<String>(Arrays.asList("getImplMethodSignature"));
 
-  private final Remapper remapper;
-
-  public MethodSignatureProcessor(Remapper remapper) {
-    this.remapper = remapper;
+  public MethodSignatureProcessor(TracingRemapper remapper) {
+    super(remapper);
   }
 
   @Override
-  public boolean process(final EntryStruct struct) throws IOException {
+  public boolean processImpl(EntryStruct struct, Remapper remapper) throws IOException {
     if (!struct.name.endsWith(".class") || struct.skipTransform) {
       return true;
     }
@@ -50,12 +50,14 @@ public class MethodSignatureProcessor implements JarProcessor {
       e.printStackTrace();
       return true;
     }
-    reader.accept(new MethodSignatureRemapperClassVisitor(classWriter), ClassReader.EXPAND_FRAMES);
+    reader.accept(new MethodSignatureRemapperClassVisitor(classWriter, remapper), ClassReader.EXPAND_FRAMES);
     struct.data = classWriter.toByteArray();
     return true;
   }
 
-  private class MethodSignatureRemapperClassVisitor extends ClassVisitor {
+  private static class MethodSignatureRemapperClassVisitor extends ClassVisitor {
+
+    private final Remapper remapper;
 
     private class MethodSignatureRemapperMethodVisitor extends MethodVisitor {
 
@@ -96,8 +98,9 @@ public class MethodSignatureProcessor implements JarProcessor {
       }
     }
 
-    public MethodSignatureRemapperClassVisitor(ClassVisitor classVisitor) {
+    public MethodSignatureRemapperClassVisitor(ClassVisitor classVisitor, Remapper remapper) {
       super(Opcodes.ASM9, classVisitor);
+      this.remapper = remapper;
     }
 
     @Override

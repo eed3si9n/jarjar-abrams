@@ -24,11 +24,16 @@ import com.eed3si9n.jarjar.EmptyClassVisitor;
 
 public class RemappingClassTransformer extends ClassRemapper
 {
-    public RemappingClassTransformer(Remapper pr) {
-        super(new EmptyClassVisitor(), pr);
+    public RemappingClassTransformer() {
+        this(null, null);
     }
-        
-    public void setTarget(ClassVisitor target) {
-        cv = target;
+
+    public RemappingClassTransformer(Remapper pr, ClassVisitor parent) {
+        super(new EmptyClassVisitor(), pr);
+        this.cv = parent;
+    }
+
+    public RemappingClassTransformer update(Remapper pr, ClassVisitor target) {
+        return new RemappingClassTransformer(pr, target);
     }
 }

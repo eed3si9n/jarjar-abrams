@@ -21,4 +21,13 @@ public class EntryStruct {
     public String name;
     public long time;
     public boolean skipTransform;
+
+    public EntryStruct copy() {
+        EntryStruct result = new EntryStruct();
+        result.data = data;
+        result.name = name;
+        result.time = time;
+        result.skipTransform = skipTransform;
+        return result;
+    }
 }

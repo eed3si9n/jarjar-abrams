@@ -46,7 +46,7 @@ public class MethodRewriterTest extends TestCase {
     }
   }
 
-  private static byte[] readInputStream(InputStream inputStream) throws IOException {
+  protected static byte[] readInputStream(InputStream inputStream) throws IOException {
     byte[] buf = new byte[0x2000];
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     IoUtil.pipe(inputStream, baos, buf);

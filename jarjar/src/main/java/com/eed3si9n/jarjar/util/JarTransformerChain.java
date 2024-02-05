@@ -16,21 +16,23 @@
 
 package com.eed3si9n.jarjar.util;
 
+import com.eed3si9n.jarjar.TracingRemapper;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.commons.Remapper;
 
 public class JarTransformerChain extends JarTransformer
 {
     private final RemappingClassTransformer[] chain;
 
-    public JarTransformerChain(RemappingClassTransformer[] chain) {
+    public JarTransformerChain(RemappingClassTransformer[] chain, TracingRemapper remapper) {
+        super(remapper);
         this.chain = chain.clone();
-        for (int i = chain.length - 1; i > 0; i--) {
-            chain[i - 1].setTarget(chain[i]);
-        }
     }
 
-    protected ClassVisitor transform(ClassVisitor v) {
-        chain[chain.length - 1].setTarget(v);
-        return chain[0];
+    protected ClassVisitor transform(ClassVisitor parent, Remapper remapper) {
+        for (int i = chain.length - 1; i >= 0; i--) {
+            parent = chain[i].update(remapper, parent);
+        }
+        return parent;
     }
 }
