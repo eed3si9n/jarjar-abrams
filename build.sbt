@@ -101,8 +101,10 @@ lazy val jarjar_abrams_assembly = project
     Compile / packageBin := (core / assembly).value
   })
 
+lazy val ShaderTest = config("shader-test").hide
+
 lazy val core = project
-  .enablePlugins(ContrabandPlugin)
+  .enablePlugins(ContrabandPlugin, BuildInfoPlugin)
   .dependsOn(jarjar)
   .settings(nocomma {
     name := "jarjar-abrams-core"
@@ -113,6 +115,7 @@ lazy val core = project
       if (scalaVersion.value.startsWith("2.10.")) Nil
       else Vector(verify % Test)
     }
+
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
     Compile / managedSourceDirectories += (Compile / generateContrabands / sourceManaged).value
@@ -131,6 +134,16 @@ lazy val core = project
       else if (scalaVersion.value.startsWith("2.12.")) Vector("-Xlint", "-Xfatal-warnings")
       else Vector("-Xlint")
     }
+
+    // make some dependencies available to testpkg.ShaderTest
+    ivyConfigurations += ShaderTest
+    libraryDependencies ++= Seq(
+      "org.apache.calcite" % "calcite-core" % "1.36.0"
+    ).map(_ % ShaderTest)
+    ShaderTest / managedClasspath := Classpaths.managedJars(ShaderTest, classpathTypes.value, update.value)
+    buildInfoKeys ++= Seq[BuildInfoKey](
+      BuildInfoKey.map(ShaderTest / managedClasspath) { case (k, v) => "shaderTest" -> v.map(_.data) }
+    )
   })
 
 lazy val sbtplugin = project
