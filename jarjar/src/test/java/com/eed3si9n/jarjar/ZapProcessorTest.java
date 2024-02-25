@@ -22,6 +22,12 @@ public class ZapProcessorTest
 
     entryStruct.name = "com/example/Object.class";
     assertTrue(zapProcessor.process(entryStruct));
+
+    entryStruct.name = "org/file.txt";
+    assertFalse(zapProcessor.process(entryStruct));
+
+    entryStruct.name = "com/file.txt";
+    assertTrue(zapProcessor.process(entryStruct));
   }
 
   @Test

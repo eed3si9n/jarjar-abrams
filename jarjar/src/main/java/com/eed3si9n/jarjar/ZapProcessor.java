@@ -30,9 +30,20 @@ class ZapProcessor implements JarProcessor
 
     public boolean process(EntryStruct struct) throws IOException {
         String name = struct.name;
-        if (name.endsWith(".class"))
-            return !zap(name.substring(0, name.length() - 6));
-        return true;
+        String matchName = name.endsWith(".class") ?
+                name.substring(0, name.length() - 6) :
+                replaceResourceName(name);
+        return !zap(matchName);
+    }
+
+    private static final String RESOURCE_SUFFIX = "RESOURCE";
+
+    private static String replaceResourceName(String name) {
+        int slash = name.lastIndexOf('/');
+
+        String s = (slash < 0) ? RESOURCE_SUFFIX : name.substring(0, slash + 1) + RESOURCE_SUFFIX;
+        boolean absolute = s.startsWith("/");
+        return absolute ? s.substring(1) : s;
     }
     
     private boolean zap(String desc) {
