@@ -70,7 +70,7 @@ public class IoUtil {
                 int index = name.lastIndexOf('/');
                 while (index > 0) {
                     name = name.substring(0, index);
-                    dirsToRetain.add(name);
+                    dirsToRetain.add(name + "/");
                     index = name.lastIndexOf('/');
                 }
             }
