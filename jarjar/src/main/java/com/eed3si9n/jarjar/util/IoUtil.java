@@ -82,6 +82,7 @@ public class IoUtil {
             ZipEntry inputEntry = entries.nextElement();
             if (!inputEntry.isDirectory() || dirsToRetain.contains(inputEntry.getName())) {
                 ZipEntry outputEntry = new ZipEntry(inputEntry);
+                outputEntry.setCompressedSize(-1);
                 outputStream.putNextEntry(outputEntry);
                 if (!inputEntry.isDirectory()) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
