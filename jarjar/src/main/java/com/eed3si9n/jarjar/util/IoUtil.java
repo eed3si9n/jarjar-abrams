@@ -58,7 +58,7 @@ public class IoUtil {
     public static void copyZipWithoutEmptyDirectories(File inputFile, File outputFile) throws IOException {
         final byte[] buf = new byte[0x2000];
         ZipFile inputZip = new ZipFile(inputFile);
-        ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(outputFile));
+        ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputFile)));
 
         // First pass: create a set of directories to retain
         Set<String> dirsToRetain = new HashSet<>();
