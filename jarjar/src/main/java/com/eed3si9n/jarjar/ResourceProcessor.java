@@ -58,9 +58,9 @@ class ResourceProcessor implements JarProcessor
         // The file can also have comments and whitespaces
         String s = new String(providers, StandardCharsets.UTF_8);
 
-        String mapped = Arrays.stream(s.split(System.lineSeparator()))
+        String mapped = Arrays.stream(s.split("\n"))
             .map(l -> (String) pr.mapValue(Arrays.stream(l.split("#")).findFirst().orElse("").trim()))
-            .collect(Collectors.joining(System.lineSeparator()));
+            .collect(Collectors.joining("\n")) + "\n";
         return mapped.getBytes(StandardCharsets.UTF_8);
     }
 

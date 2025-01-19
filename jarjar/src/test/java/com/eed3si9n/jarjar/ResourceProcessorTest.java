@@ -34,16 +34,16 @@ public class ResourceProcessorTest {
 
     @Test
     public void testServiceProviderConfig() throws IOException {
-        String original = "org.example.Impl     # comment" + System.lineSeparator()
-                        + "org.example.AnotherImpl" + System.lineSeparator()
-                        + "#" + System.lineSeparator()
-                        + System.lineSeparator()
+        String original = "org.example.Impl     # comment\n"
+                        + "org.example.AnotherImpl\n"
+                        + "#\n"
+                        + "\n"
                         + "     org.another.Impl";
-        String expected = "something.shaded.org.example.Impl" + System.lineSeparator()
-                        + "something.shaded.org.example.AnotherImpl" + System.lineSeparator()
-                        + System.lineSeparator()
-                        + System.lineSeparator()
-                        + "org.another.Impl";
+        String expected = "something.shaded.org.example.Impl\n"
+                        + "something.shaded.org.example.AnotherImpl\n"
+                        + "\n"
+                        + "\n"
+                        + "org.another.Impl\n";
         EntryStruct entryStruct = new EntryStruct();
         entryStruct.name = "META-INF/services/org.example.Service";
         entryStruct.data = original.getBytes(StandardCharsets.UTF_8);
