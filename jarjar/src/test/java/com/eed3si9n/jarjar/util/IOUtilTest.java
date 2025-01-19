@@ -46,7 +46,7 @@ public class IOUtilTest {
              Stream<Path> paths = Files.walk(sourceDir)
         ) {
             paths.forEach(path -> {
-                String name = sourceDir.relativize(path).toString();
+                String name = sourceDir.relativize(path).toString().replace('\\', '/');
                 if (Files.isDirectory(path)) {
                     name = name + "/";
                 }
