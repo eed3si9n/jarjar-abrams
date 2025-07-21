@@ -37,19 +37,34 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
    */
   def renameEntries(renamer: String => Option[String]): Unit = {
 
-    entries.zipWithIndex.collect {
-      case (ref: RefEntry, index) =>
-        entries(ref.nameRef) match {
-          case nameEntry: NameEntry =>
-            for {
-              fqName <- resolveRef(ref)
-              renamed <- renamer(fqName)
-            } {
+    entries.zipWithIndex
+      .collect {
+        case (ref: RefEntry, index) =>
+          entries(ref.nameRef) match {
+            case nameEntry: NameEntry =>
+              resolveRef(ref).map { (_, (ref, nameEntry, index)) }
+
+            case other =>
+              throw new RuntimeException(
+                s"Ref entry does not point to a name but to a ${other.tag}"
+              )
+          }
+      }
+      .flatten
+      .sortBy(_._1)
+      .foreach {
+        case (fqName, (ref, nameEntry, index)) =>
+          val renameResult = renamer(fqName)
+          val curName = resolveRef(ref)
+
+          for (renamed <- renameResult) {
+            if (!curName.contains(renamed)) {
               val parts = renamed.split('.')
 
               val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
                 val nameIndex = getOrAppendNameEntry(NameEntry(PickleFormat.TERMname, part))
-                val nextOwner = appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
+                val nextOwner =
+                  appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
                 Some(nextOwner)
               }
 
@@ -58,11 +73,8 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
                 ownerRef = myOwner
               )
             }
-
-          case other =>
-            throw new RuntimeException(s"Ref entry does not point to a name but to a ${other.tag}")
-        }
-    }
+          }
+      }
   }
 
   // Return existing name entry or append a new one.
