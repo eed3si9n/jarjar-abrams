@@ -1,16 +1,33 @@
 package com.eed3si9n.jarjarabrams
 
-import com.eed3si9n.jarjar.util.{ DuplicateJarEntryException, EntryStruct, IoUtil }
+import com.eed3si9n.jarjar.util.{ DuplicateJarEntryException, EntryStruct }
 import java.nio.file.{ Files, NoSuchFileException, Path }
 import java.nio.file.attribute.FileTime
 import java.io.{ ByteArrayOutputStream, FileNotFoundException, InputStream, OutputStream }
 import java.security.MessageDigest
 import java.util.jar.JarEntry
-import scala.annotation.tailrec
+import scala.annotation.{ nowarn, tailrec }
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+@nowarn("msg=Unused import")
 object Zip {
+  private object ParCollectionCrossBuild {
+    object Default {
+      object CollectionConverters
+    }
+
+    val Converters = {
+      import Default._
+      {
+        import scala.collection.parallel._
+        CollectionConverters
+      }
+    }
+
+  }
+
+  import ParCollectionCrossBuild.Converters._
 
   /** The size of the byte or char buffer used in various methods. */
   private final val BufferSize = 8192
@@ -50,40 +67,70 @@ object Zip {
       warnOnDuplicateClass: Boolean
   )(f: EntryStruct => Option[EntryStruct]): Path =
     Using.jarFile(inputJar) { in =>
-      val tempJar = Files.createTempFile("jarjar", ".jar")
-      Using.jarOutputStream(tempJar) { out =>
+      Using.jarOutputStream(outputJar) { out =>
         val names = new mutable.HashSet[String]
-        in.entries.asScala.foreach { entry0 =>
-          val struct0 = entryStruct(
-            entry0.getName,
-            entry0.getTime,
-            toByteArray(in.getInputStream(entry0)),
-            skipTransform = false
-          )
-          f(struct0) match {
-            case Some(struct) =>
-              if (names.add(struct.name)) {
-                val entry = new JarEntry(struct.name)
-                val time =
-                  if (resetTimestamp) hardcodedZipTimestamp(struct.name)
-                  else enforceMinimum(struct.time)
-                entry.setTime(time)
-                entry.setCompressedSize(-1)
-                out.putNextEntry(entry)
-                out.write(struct.data)
-              } else if (struct.name.endsWith("/")) ()
-              else {
-                if (warnOnDuplicateClass)
-                  Console.err.println(
-                    s"in ${inputJar}, found duplicate files with name: ${struct.name}, ignoring due to specified option"
-                  )
-                else throw new DuplicateJarEntryException(inputJar.toString, struct.name)
+        val structsIter = in.entries.asScala
+          .grouped(100000)
+          .flatMap(_.par.flatMap { entry0 =>
+            val struct0 = entryStruct(
+              entry0.getName,
+              entry0.getTime,
+              toByteArray(in.getInputStream(entry0)),
+              skipTransform = false
+            )
+            f(struct0)
+          }.toIterator)
+          .filter { struct =>
+            if (names.add(struct.name)) {
+              true
+            } else if (struct.name.endsWith("/")) {
+              false
+            } else if (warnOnDuplicateClass) {
+              Console.err.println(
+                s"in ${inputJar}, found duplicate files with name: ${struct.name}, ignoring due to specified option"
+              )
+              false
+            } else throw new DuplicateJarEntryException(inputJar.toString, struct.name)
+          }
+
+        val dirsToRetain = mutable.HashSet.empty[String]
+        val undecidedDirs = mutable.HashMap.empty[String, EntryStruct]
+
+        def outputStruct(struct: EntryStruct): Unit = {
+          val entry = new JarEntry(struct.name)
+          val time =
+            if (resetTimestamp) hardcodedZipTimestamp(struct.name)
+            else enforceMinimum(struct.time)
+          entry.isDirectory
+          entry.setTime(time)
+          entry.setCompressedSize(-1)
+          out.putNextEntry(entry)
+          out.write(struct.data)
+        }
+
+        structsIter.foreach { struct =>
+          val name = struct.name
+          if (name.endsWith("/")) {
+            if (dirsToRetain(name)) {
+              outputStruct(struct)
+            } else {
+              undecidedDirs(name) = struct
+            }
+          } else {
+            val directory = name.substring(0, name.lastIndexOf('/') + 1)
+            var index = 0
+            while (index != directory.length) {
+              index = directory.indexOf('/', index) + 1
+              val dirName = directory.substring(0, index)
+              if (dirsToRetain.add(dirName)) {
+                undecidedDirs.remove(dirName).foreach(outputStruct)
               }
-            case None => ()
+            }
+
+            outputStruct(struct)
           }
         }
       }
-      IoUtil.copyZipWithoutEmptyDirectories(tempJar.toFile, outputJar.toFile)
       resetModifiedTime(outputJar)
       outputJar
     }

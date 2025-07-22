@@ -15,7 +15,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(byteBuddyJar),
       resetTimestamp = false,
       expectedClass = expectedByteBuddyClass,
-      expectedSha = "42454701a0b53a13af17d015c1785ef5ea342d8c324315ed17d80831cba98be3"
+      expectedSha = "f3f441dd5ab28577083ab4e5235382db76fb9b60b7117a712691f0e25ab2cea4"
     )
   }
 
@@ -24,7 +24,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(byteBuddyJar),
       resetTimestamp = true,
       expectedClass = expectedByteBuddyClass,
-      expectedSha = "0db0b1300533c06a934dca1e7016f6dc2d432c66f1927102d6f6b49086dcfddb"
+      expectedSha = "debbc6e00c39c1ad50f238055696538d98faf59458d10845154c4fb87234eddc"
     )
   }
 
