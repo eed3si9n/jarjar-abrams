@@ -113,6 +113,10 @@ lazy val core = project
       if (scalaVersion.value.startsWith("2.10.")) Nil
       else Vector(verify % Test)
     }
+    libraryDependencies ++= {
+      if (scalaVersion.value.startsWith("2.13.")) Vector(parallel)
+      else Nil
+    }
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
 
     Compile / managedSourceDirectories += (Compile / generateContrabands / sourceManaged).value
