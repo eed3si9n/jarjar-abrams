@@ -10,9 +10,7 @@ ThisBuild / version := {
   else old
 }
 ThisBuild / description := "utility to shade Scala libraries"
-ThisBuild / licenses := Seq(
-  "Apache 2" -> new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")
-)
+ThisBuild / licenses := Seq(License.Apache2)
 ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
 
 lazy val jarjar = project
@@ -172,9 +170,9 @@ ThisBuild / pomIncludeRepository := { _ =>
   false
 }
 ThisBuild / publishTo := {
-  val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (version.value.endsWith("-SNAPSHOT")) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value
 }
 ThisBuild / publishMavenStyle := true
 ThisBuild / assemblyMergeStrategy := {
