@@ -28,7 +28,7 @@ class KeepProcessor extends Remapper implements JarProcessor
     private final ClassVisitor cv = new ClassRemapper(new EmptyClassVisitor(), this);
     private final List<Wildcard> wildcards;
     private final List<String> roots = new ArrayList<String>();
-    private final Map<String, Set<String>> depend = new HashMap<String, Set<String>>();
+    private final Map<String, Set<String>> depend = Collections.synchronizedMap(new HashMap<>());
 
     public KeepProcessor(List<Keep> patterns) {
         wildcards = PatternElement.createWildcards(patterns);

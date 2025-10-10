@@ -30,9 +30,9 @@ class PackageRemapper extends TracingRemapper
 
     private final List<Wildcard> wildcards;
     private final List<Rule> ruleList;
-    private final Map<String, String> typeCache = new HashMap<String, String>();
-    private final Map<String, String> pathCache = new HashMap<String, String>();
-    private final Map<Object, String> valueCache = new HashMap<Object, String>();
+    private final Map<String, String> typeCache = Collections.synchronizedMap(new HashMap<>());
+    private final Map<String, String> pathCache = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Object, String> valueCache = Collections.synchronizedMap(new HashMap<>());
     private final boolean verbose;
     private boolean modified = false;
 
