@@ -40,7 +40,7 @@ jobs:
       if: ${{ matrix.jobtype == 1 }}
       shell: bash
       run: |
-        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
+        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "+test" "publishLocal;scripted"
     - name: Build and test (2)
       if: ${{ matrix.jobtype == 2 }}
       shell: bash
@@ -73,4 +73,4 @@ jobs:
     - name: Build and test
       shell: bash
       run: |
-        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "jarjar/IntegrationTest/test" "+test" "publishLocal;scripted"
+        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "+test" "publishLocal;scripted"
