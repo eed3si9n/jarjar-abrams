@@ -64,7 +64,7 @@ jobs:
     - name: Setup JDK
       uses: actions/setup-java@v4
       with:
-        java-version: 22
+        java-version: 25
         distribution: temurin
         cache: sbt
     - uses: sbt/setup-sbt@v1
