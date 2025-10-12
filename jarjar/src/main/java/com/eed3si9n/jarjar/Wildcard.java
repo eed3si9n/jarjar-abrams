@@ -70,7 +70,7 @@ class Wildcard
                     int n = Integer.parseInt(new String(chars, mark, i - mark));
                     if (n > max)
                         max = n;
-                    parts.add(new Integer(n));
+                    parts.add(Integer.valueOf(n));
                     mark = i--;
                     state = 0;
                 }
