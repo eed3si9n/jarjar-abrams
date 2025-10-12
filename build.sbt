@@ -122,10 +122,7 @@ lazy val core = project
 
     crossScalaVersions := Vector(scala212, scala213)
 
-    libraryDependencies ++= {
-      if (scalaVersion.value.startsWith("2.10.")) Nil
-      else Vector(verify % Test)
-    }
+    libraryDependencies ++= Vector(verify % Test)
     libraryDependencies ++= {
       if (scalaVersion.value.startsWith("2.13.")) Vector(parallel)
       else Nil
@@ -134,11 +131,6 @@ lazy val core = project
 
     Compile / managedSourceDirectories += (Compile / generateContrabands / sourceManaged).value
     Compile / generateContrabands / sourceManaged := baseDirectory.value / "src" / "main" / "contraband-scala"
-    Test / sources := {
-      val orig = (Test / sources).value
-      if (scalaVersion.value.startsWith("2.10.")) Nil
-      else orig
-    }
 
     testFrameworks += new TestFramework("verify.runner.Framework")
 
