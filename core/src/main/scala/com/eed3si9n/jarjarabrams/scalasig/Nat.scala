@@ -18,10 +18,11 @@ object Nat {
     def readLongNat(): Long = {
       var b = 0L
       var x = 0L
-      do {
+      while ({
         b = readByte().toLong
         x = (x << 7) + (b & 0x7f)
-      } while ((b & 0x80) != 0L)
+        (b & 0x80) != 0L
+      }) {}
       x
     }
 

@@ -120,14 +120,33 @@ lazy val core = project
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
-    crossScalaVersions := Vector(scala212, scala213)
+    crossScalaVersions := Vector(scala212, scala213, scala3)
 
     libraryDependencies ++= Vector(verify % Test)
     libraryDependencies ++= {
-      if (scalaVersion.value.startsWith("2.13.")) Vector(parallel)
-      else Nil
+      scalaBinaryVersion.value match {
+        case "2.12" =>
+          Nil
+        case _ =>
+          Vector(parallel)
+      }
     }
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+    libraryDependencies += {
+      scalaBinaryVersion.value match {
+        case "3" =>
+          "org.scala-lang" % "scala-reflect" % scala213
+        case _ =>
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      }
+    }
+    Test / testOptions ++= {
+      scalaBinaryVersion.value match {
+        case "3" =>
+          Seq(Tests.Exclude(Set("testpkg.EntryTableSpec")))
+        case _ =>
+          Nil
+      }
+    }
 
     Compile / managedSourceDirectories += (Compile / generateContrabands / sourceManaged).value
     Compile / generateContrabands / sourceManaged := baseDirectory.value / "src" / "main" / "contraband-scala"
