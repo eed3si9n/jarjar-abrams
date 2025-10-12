@@ -1,5 +1,5 @@
 /**
- * This code is generated using [[https://www.scala-sbt.org/contraband/ sbt-contraband]].
+ * This code is generated using [[https://www.scala-sbt.org/contraband]].
  */
 
 // DO NOT EDIT MANUALLY
@@ -16,17 +16,17 @@ final class ShadeTarget private (
   def isApplicableTo(mod: ModuleCoordinate): Boolean = inAll || (moduleId == Some(mod))
   
   
-  override def equals(o: Any): Boolean = o match {
+  override def equals(o: Any): Boolean = this.eq(o.asInstanceOf[AnyRef]) || (o match {
     case x: ShadeTarget => (this.inAll == x.inAll) && (this.inProject == x.inProject) && (this.moduleId == x.moduleId)
     case _ => false
-  }
+  })
   override def hashCode: Int = {
     37 * (37 * (37 * (37 * (17 + "com.eed3si9n.jarjarabrams.ShadeTarget".##) + inAll.##) + inProject.##) + moduleId.##)
   }
   override def toString: String = {
     "ShadeTarget(" + inAll + ", " + inProject + ", " + moduleId + ")"
   }
-  private[this] def copy(inAll: Boolean = inAll, inProject: Boolean = inProject, moduleId: Option[ModuleCoordinate] = moduleId): ShadeTarget = {
+  private def copy(inAll: Boolean = inAll, inProject: Boolean = inProject, moduleId: Option[ModuleCoordinate] = moduleId): ShadeTarget = {
     new ShadeTarget(inAll, inProject, moduleId)
   }
   def withInAll(inAll: Boolean): ShadeTarget = {

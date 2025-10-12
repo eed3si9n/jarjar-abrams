@@ -1,5 +1,5 @@
 /**
- * This code is generated using [[https://www.scala-sbt.org/contraband/ sbt-contraband]].
+ * This code is generated using [[https://www.scala-sbt.org/contraband]].
  */
 
 // DO NOT EDIT MANUALLY
@@ -12,17 +12,17 @@ final class ModuleCoordinate private (
   
   
   
-  override def equals(o: Any): Boolean = o match {
+  override def equals(o: Any): Boolean = this.eq(o.asInstanceOf[AnyRef]) || (o match {
     case x: ModuleCoordinate => (this.organization == x.organization) && (this.name == x.name) && (this.version == x.version)
     case _ => false
-  }
+  })
   override def hashCode: Int = {
     37 * (37 * (37 * (37 * (17 + "com.eed3si9n.jarjarabrams.ModuleCoordinate".##) + organization.##) + name.##) + version.##)
   }
   override def toString: String = {
     "ModuleCoordinate(" + organization + ", " + name + ", " + version + ")"
   }
-  private[this] def copy(organization: String = organization, name: String = name, version: String = version): ModuleCoordinate = {
+  private def copy(organization: String = organization, name: String = name, version: String = version): ModuleCoordinate = {
     new ModuleCoordinate(organization, name, version)
   }
   def withOrganization(organization: String): ModuleCoordinate = {

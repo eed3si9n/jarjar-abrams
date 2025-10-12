@@ -1,5 +1,5 @@
 /**
- * This code is generated using [[https://www.scala-sbt.org/contraband/ sbt-contraband]].
+ * This code is generated using [[https://www.scala-sbt.org/contraband]].
  */
 
 // DO NOT EDIT MANUALLY
@@ -17,17 +17,17 @@ final class ShadeRule private (
   targets.exists(_.inAll) || targets.exists(_.isApplicableTo(mod))
   
   
-  override def equals(o: Any): Boolean = o match {
+  override def equals(o: Any): Boolean = this.eq(o.asInstanceOf[AnyRef]) || (o match {
     case x: ShadeRule => (this.shadePattern == x.shadePattern) && (this.targets == x.targets)
     case _ => false
-  }
+  })
   override def hashCode: Int = {
     37 * (37 * (37 * (17 + "com.eed3si9n.jarjarabrams.ShadeRule".##) + shadePattern.##) + targets.##)
   }
   override def toString: String = {
     "ShadeRule(" + shadePattern + ", " + targets + ")"
   }
-  private[this] def copy(shadePattern: com.eed3si9n.jarjarabrams.ShadePattern = shadePattern, targets: Vector[ShadeTarget] = targets): ShadeRule = {
+  private def copy(shadePattern: com.eed3si9n.jarjarabrams.ShadePattern = shadePattern, targets: Vector[ShadeTarget] = targets): ShadeRule = {
     new ShadeRule(shadePattern, targets)
   }
   def withShadePattern(shadePattern: com.eed3si9n.jarjarabrams.ShadePattern): ShadeRule = {
