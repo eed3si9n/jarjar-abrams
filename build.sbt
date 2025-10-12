@@ -16,8 +16,6 @@ ThisBuild / homepage := Some(url("https://github.com/eed3si9n/jarjar-abrams"))
 lazy val jarjar = project
   .in(file("jarjar"))
   .disablePlugins(ScalafmtPlugin)
-  .configs(IntegrationTest)
-  .settings(Defaults.itSettings)
   .settings(nocomma {
     organization := "com.eed3si9n.jarjar"
     name := "jarjar"
@@ -28,20 +26,12 @@ lazy val jarjar = project
       "org.ow2.asm" % "asm" % "9.8",
       "org.ow2.asm" % "asm-commons" % "9.8",
       "org.apache.commons" % "commons-lang3" % "3.8.1",
-      "junit" % "junit" % "4.12" % "it,test",
-      "com.github.sbt" % "junit-interface" % "0.13.2" % "it,test"
     )
+    libraryDependencies ++= junit
 
     mainClass := Some("com.eed3si9n.jarjar.Main")
 
     testFrameworks += new TestFramework("com.novocode.junit.JUnitFramework")
-
-    IntegrationTest / fork := true
-    IntegrationTest / envVars := Map(
-      "JARJAR_CLASSPATH" -> (Runtime / fullClasspath).value
-        .map(_.data)
-        .mkString(System.getProperty("path.separator"))
-    )
 
     assemblyMergeStrategy := {
       case PathList("module-info.class")         => MergeStrategy.discard
@@ -50,6 +40,31 @@ lazy val jarjar = project
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     }
+  })
+
+lazy val integrationTest = project
+  .in(file("integration"))
+  .disablePlugins(ScalafmtPlugin)
+  .dependsOn(jarjar)
+  .settings(nocomma {
+    publish / skip := true
+    crossPaths := false
+    autoScalaLibrary := false
+    libraryDependencies ++= junit
+    testFrameworks += new TestFramework("com.novocode.junit.JUnitFramework")
+    Test / fork := true
+    Test / sources := {
+      if (scala.util.Properties.isWin) {
+        Nil
+      } else {
+        (Test / sources).value
+      }
+    }
+    Test / envVars := Map(
+      "JARJAR_CLASSPATH" -> (Runtime / fullClasspath).value
+        .map(_.data)
+        .mkString(System.getProperty("path.separator"))
+    )
   })
 
 lazy val ant_jarjar = project
