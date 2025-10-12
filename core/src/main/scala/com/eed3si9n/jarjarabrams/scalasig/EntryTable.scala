@@ -17,9 +17,11 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
 
   // Mapping of known TermName or TypeNames to their index in the table.
   private val nameIndices: mutable.Map[NameEntry, Int] = mutable.HashMap(
-    (entries.zipWithIndex.collect {
-      case (entry: NameEntry, index) => (entry, index)
-    }).toSeq: _*
+    entries.zipWithIndex
+      .collect {
+        case (entry: NameEntry, index) => (entry, index)
+      }
+      .toSeq *
   )
 
   /**
