@@ -50,7 +50,9 @@ jobs:
       if: ${{ matrix.jobtype == 3 }}
       shell: bash
       run: |
-        sbt -v -Dfile.encoding=UTF8 scalafmtCheckAll
+        find **/src/main/contraband-scala -name "*.scala" -delete
+        sbt -v -Dfile.encoding=UTF8 generateContrabands scalafmtCheckAll
+        git diff --exit-code # check contrabands
 
   ea-test:
     runs-on: ubuntu-latest
