@@ -32,7 +32,7 @@ class JJProcessor(
     val misplacedClassStrategy: String
 ) extends JarProcessor {
 
-  val zapList: Seq[Zap] = patterns.collect { case zap: Zap     => zap }
+  val zapList: Seq[Zap] = patterns.collect { case zap: Zap => zap }
   val ruleList: Seq[Rule] = patterns.collect { case rule: Rule => rule }
   val keepList: Seq[Keep] = patterns.collect { case keep: Keep => keep }
   val renames: mutable.Map[String, String] = collection.mutable.HashMap[String, String]()

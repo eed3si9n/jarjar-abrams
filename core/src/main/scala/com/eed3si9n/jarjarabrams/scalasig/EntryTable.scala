@@ -17,11 +17,9 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
 
   // Mapping of known TermName or TypeNames to their index in the table.
   private val nameIndices: mutable.Map[NameEntry, Int] = mutable.HashMap(
-    entries.zipWithIndex
-      .collect {
-        case (entry: NameEntry, index) => (entry, index)
-      }
-      .toSeq *
+    entries.zipWithIndex.collect { case (entry: NameEntry, index) =>
+      (entry, index)
+    }.toSeq*
   )
 
   /**
@@ -39,31 +37,30 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
    */
   def renameEntries(renamer: String => Option[String]): Unit = {
 
-    entries.zipWithIndex.collect {
-      case (ref: RefEntry, index) =>
-        entries(ref.nameRef) match {
-          case nameEntry: NameEntry =>
-            for {
-              fqName <- resolveRef(ref)
-              renamed <- renamer(fqName)
-            } {
-              val parts = renamed.split('.')
+    entries.zipWithIndex.collect { case (ref: RefEntry, index) =>
+      entries(ref.nameRef) match {
+        case nameEntry: NameEntry =>
+          for {
+            fqName <- resolveRef(ref)
+            renamed <- renamer(fqName)
+          } {
+            val parts = renamed.split('.')
 
-              val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
-                val nameIndex = getOrAppendNameEntry(NameEntry(PickleFormat.TERMname, part))
-                val nextOwner = appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
-                Some(nextOwner)
-              }
-
-              entries(index) = ref.copy(
-                nameRef = getOrAppendNameEntry(nameEntry.copy(name = parts.last)),
-                ownerRef = myOwner
-              )
+            val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
+              val nameIndex = getOrAppendNameEntry(NameEntry(PickleFormat.TERMname, part))
+              val nextOwner = appendEntry(RefEntry(PickleFormat.EXTMODCLASSref, nameIndex, owner))
+              Some(nextOwner)
             }
 
-          case other =>
-            throw new RuntimeException(s"Ref entry does not point to a name but to a ${other.tag}")
-        }
+            entries(index) = ref.copy(
+              nameRef = getOrAppendNameEntry(nameEntry.copy(name = parts.last)),
+              ownerRef = myOwner
+            )
+          }
+
+        case other =>
+          throw new RuntimeException(s"Ref entry does not point to a name but to a ${other.tag}")
+      }
     }
   }
 
@@ -90,12 +87,12 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
 
     val myName = entries(extMod.nameRef) match {
       case term: NameEntry => term.name
-      case raw: RawEntry =>
+      case raw: RawEntry   =>
         throw new RuntimeException(s"Unexpected raw type for nameref ${raw.tag}")
       case other => throw new RuntimeException(s"Unexpected type for nameref $other")
     }
     extMod.ownerRef match {
-      case None => Some(myName)
+      case None        => Some(myName)
       case Some(owner) =>
         entries(owner) match {
           case name: NameEntry =>

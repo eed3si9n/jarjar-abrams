@@ -11,8 +11,10 @@ object Nat {
     /** Read a byte */
     def readByte(): Int
 
-    /** Read a natural number in big endian format, base 128.
-     * All but the last digits have bit 0x80 set. */
+    /**
+     * Read a natural number in big endian format, base 128.
+     * All but the last digits have bit 0x80 set.
+     */
     def readNat(): Int = readLongNat().toInt
 
     def readLongNat(): Long = {
@@ -44,11 +46,12 @@ object Nat {
     /** Write a byte */
     def writeByte(b: Int): Unit
 
-    /** Write a natural number in big endian format, base 128.
+    /**
+     * Write a natural number in big endian format, base 128.
      *  All but the last digits have bit 0x80 set.
      */
     def writeNat(x: Int): Unit =
-      writeLongNat(x.toLong & 0x00000000FFFFFFFFL)
+      writeLongNat(x.toLong & 0x00000000ffffffffL)
 
     /**
      * Like writeNat, but for longs. This is not the same as

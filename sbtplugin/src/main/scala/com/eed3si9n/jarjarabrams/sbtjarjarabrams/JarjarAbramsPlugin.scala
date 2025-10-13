@@ -74,7 +74,9 @@ object JarjarAbramsPlugin extends AutoPlugin {
   def baseSettings: Seq[Setting[?]] =
     Seq(
       packageBin := jarjarPackageBin.value,
-      jarjarPackageBin / target := crossTarget.value / (prefix(configuration.value.name) + "shaded"),
+      jarjarPackageBin / target := crossTarget.value / (prefix(
+        configuration.value.name
+      ) + "shaded"),
       jarjarPackageBin / logLevel := Level.Info,
       jarjarPackageBinMappings := {
         import sbt.util.CacheImplicits._
@@ -88,8 +90,8 @@ object JarjarAbramsPlugin extends AutoPlugin {
           IO.delete(dir)
           IO.createDirectory(dir)
           IO.unzip(input, dir)
-          val mappings = ((dir ** "*").get() pair relativeTo(dir)) map {
-            case (k, v) => k.toPath -> v
+          val mappings = ((dir ** "*").get() pair relativeTo(dir)) map { case (k, v) =>
+            k.toPath -> v
           }
           Shader.shadeDirectory(rules, dir.toPath, mappings, verbose)
           (dir ** "*").get() pair relativeTo(dir)
@@ -99,7 +101,7 @@ object JarjarAbramsPlugin extends AutoPlugin {
             .inputChanged[HashFileInfo, Seq[(File, String)]](s.cacheStoreFactory.make("input")) {
               (changed: Boolean, in: HashFileInfo) =>
                 prev match {
-                  case None => doMapping
+                  case None       => doMapping
                   case Some(last) =>
                     if (changed) doMapping
                     else last
@@ -111,12 +113,11 @@ object JarjarAbramsPlugin extends AutoPlugin {
         val libDep = jarjarLibraryDependency.value
         val ur = update.value
         val cr = ur.configurations.find(_.configuration.name == configuration.value.name).head
-        val modules = cr.modules find {
-          case mr: ModuleReport =>
-            val m = mr.module
-            (m.organization == libDep.organization) &&
-            (m.revision == libDep.revision) &&
-            ((m.name == libDep.name) || (m.name == crossName(libDep, scalaModuleInfo.value)))
+        val modules = cr.modules find { case mr: ModuleReport =>
+          val m = mr.module
+          (m.organization == libDep.organization) &&
+          (m.revision == libDep.revision) &&
+          ((m.name == libDep.name) || (m.name == crossName(libDep, scalaModuleInfo.value)))
         }
         val mr = modules match {
           case Some(m) => m
@@ -155,9 +156,8 @@ object JarjarAbramsPlugin extends AutoPlugin {
   ): String = {
     val crossVer = modId.crossVersion
     val transformName = scalaModuleInfoOpt
-      .flatMap(
-        scalaInfo =>
-          CrossVersion(crossVer, scalaInfo.scalaFullVersion, scalaInfo.scalaBinaryVersion)
+      .flatMap(scalaInfo =>
+        CrossVersion(crossVer, scalaInfo.scalaFullVersion, scalaInfo.scalaBinaryVersion)
       )
       .getOrElse(identity[String] _)
     transformName(modId.name)
@@ -201,13 +201,12 @@ object JarjarAbramsPlugin extends AutoPlugin {
     val baseFile = deliverLocal.value
     val log = streams.value.log
     val resolverName = publishLocalConfiguration.value.resolverName.getOrElse(???)
-    ivyModule.value.withModule(log) {
-      case (ivy, md, _) =>
-        val resolver = ivy.getSettings.getResolver(resolverName)
-        val artifact =
-          new org.apache.ivy.core.module.descriptor.MDArtifact(md, "ivy", "ivy", "xml", true)
-        log.info(s"Writing ivy.xml with shading at $baseFile")
-        resolver.publish(artifact, baseFile, true)
+    ivyModule.value.withModule(log) { case (ivy, md, _) =>
+      val resolver = ivy.getSettings.getResolver(resolverName)
+      val artifact =
+        new org.apache.ivy.core.module.descriptor.MDArtifact(md, "ivy", "ivy", "xml", true)
+      log.info(s"Writing ivy.xml with shading at $baseFile")
+      resolver.publish(artifact, baseFile, true)
     }
   }
 }
