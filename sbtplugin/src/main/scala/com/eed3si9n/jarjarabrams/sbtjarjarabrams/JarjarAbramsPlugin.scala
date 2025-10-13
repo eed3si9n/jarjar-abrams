@@ -16,11 +16,11 @@ object JarjarAbramsPlugin extends AutoPlugin {
   }
   import autoImport._
 
-  override def globalSettings: Seq[Setting[_]] = {
+  override def globalSettings: Seq[Setting[?]] = {
     jarjarShadeRules := Vector()
   }
 
-  override def projectSettings: Seq[Setting[_]] =
+  override def projectSettings: Seq[Setting[?]] =
     Seq(
       libraryDependencies += jarjarLibraryDependency.value,
       exportJars := true,
@@ -71,7 +71,7 @@ object JarjarAbramsPlugin extends AutoPlugin {
     ) ++ inConfig(Compile)(baseSettings)
 
   import JarjarAbramsInternalKeys._
-  def baseSettings: Seq[Setting[_]] =
+  def baseSettings: Seq[Setting[?]] =
     Seq(
       packageBin := jarjarPackageBin.value,
       jarjarPackageBin / target := crossTarget.value / (prefix(configuration.value.name) + "shaded"),
@@ -88,11 +88,11 @@ object JarjarAbramsPlugin extends AutoPlugin {
           IO.delete(dir)
           IO.createDirectory(dir)
           IO.unzip(input, dir)
-          val mappings = ((dir ** "*").get pair relativeTo(dir)) map {
+          val mappings = ((dir ** "*").get() pair relativeTo(dir)) map {
             case (k, v) => k.toPath -> v
           }
           Shader.shadeDirectory(rules, dir.toPath, mappings, verbose)
-          (dir ** "*").get pair relativeTo(dir)
+          (dir ** "*").get() pair relativeTo(dir)
         }
         val cachedMappings =
           Tracked
