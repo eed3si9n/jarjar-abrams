@@ -25,7 +25,6 @@ lazy val jarjar = project
     libraryDependencies ++= Seq(
       "org.ow2.asm" % "asm" % "9.8",
       "org.ow2.asm" % "asm-commons" % "9.8",
-      "org.apache.commons" % "commons-lang3" % "3.8.1",
     )
     libraryDependencies ++= junit
 
@@ -51,6 +50,9 @@ lazy val integrationTest = project
     crossPaths := false
     autoScalaLibrary := false
     libraryDependencies ++= junit
+    libraryDependencies ++= Seq(
+      "org.apache.commons" % "commons-lang3" % "3.8.1" % Test,
+    )
     testFrameworks += new TestFramework("com.novocode.junit.JUnitFramework")
     Test / fork := true
     Test / sources := {
