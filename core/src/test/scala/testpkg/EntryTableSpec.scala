@@ -54,7 +54,9 @@ object EntryTableSpec extends BasicTestSuite {
 
     val serialized = table.toBytes
 
-    assert(scala.math.abs(serialized.length - decoded.length) <= 1) // Scala compiler (sometimes) adds an extra zero. We don't.
+    assert(
+      scala.math.abs(serialized.length - decoded.length) <= 1
+    ) // Scala compiler (sometimes) adds an extra zero. We don't.
     assert(EntryTable.fromBytes(serialized).toSeq == table.toSeq)
   }
 

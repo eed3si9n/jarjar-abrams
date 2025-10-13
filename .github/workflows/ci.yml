@@ -51,7 +51,7 @@ jobs:
       shell: bash
       run: |
         find **/src/main/contraband-scala -name "*.scala" -delete
-        sbt -v -Dfile.encoding=UTF8 generateContrabands scalafmtCheckAll
+        sbt -v -Dfile.encoding=UTF8 generateContrabands scalafmtSbtCheck scalafmtCheckAll
         git diff --exit-code # check contrabands
 
   ea-test:

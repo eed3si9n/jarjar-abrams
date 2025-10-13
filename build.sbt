@@ -36,7 +36,7 @@ lazy val jarjar = project
     assemblyMergeStrategy := {
       case PathList("module-info.class")         => MergeStrategy.discard
       case x if x.endsWith("/module-info.class") => MergeStrategy.discard
-      case x =>
+      case x                                     =>
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     }
@@ -156,7 +156,8 @@ lazy val core = project
     Compile / scalacOptions += "-deprecation"
     Compile / scalacOptions ++= {
       if (scalaVersion.value.startsWith("2.13.")) Vector("-Xlint", "-Xsource:3")
-      else if (scalaVersion.value.startsWith("2.12.")) Vector("-Xlint", "-Xsource:3", "-Xfatal-warnings")
+      else if (scalaVersion.value.startsWith("2.12."))
+        Vector("-Xlint", "-Xsource:3", "-Xfatal-warnings")
       else Vector("-Xlint")
     }
   })
@@ -203,7 +204,7 @@ ThisBuild / publishTo := {
 ThisBuild / publishMavenStyle := true
 ThisBuild / assemblyMergeStrategy := {
   case "module-info.class" => MergeStrategy.discard
-  case x =>
+  case x                   =>
     val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
     oldStrategy(x)
 }

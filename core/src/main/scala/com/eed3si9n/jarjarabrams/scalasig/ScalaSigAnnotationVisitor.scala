@@ -11,7 +11,9 @@ class ScalaSigClassVisitor(cv: ClassVisitor, renamer: String => Option[String])
     extends ClassVisitor(Opcodes.ASM9, cv) {
 
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
-    if (descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;") {
+    if (
+      descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;"
+    ) {
       new ScalaSigAnnotationVisitor(visible, cv, renamer)
     } else {
       super.visitAnnotation(descriptor, visible)

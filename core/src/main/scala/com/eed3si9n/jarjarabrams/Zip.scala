@@ -71,15 +71,19 @@ object Zip {
         val names = new mutable.HashSet[String]
         val structsIter = in.entries.asScala
           .grouped(100000)
-          .flatMap(_.par.flatMap { entry0 =>
-            val struct0 = entryStruct(
-              entry0.getName,
-              entry0.getTime,
-              toByteArray(in.getInputStream(entry0)),
-              skipTransform = false
-            )
-            f(struct0)
-          }.toIterator)
+          .flatMap(
+            _.par
+              .flatMap { entry0 =>
+                val struct0 = entryStruct(
+                  entry0.getName,
+                  entry0.getTime,
+                  toByteArray(in.getInputStream(entry0)),
+                  skipTransform = false
+                )
+                f(struct0)
+              }
+              .toIterator
+          )
           .filter { struct =>
             if (names.add(struct.name)) {
               true

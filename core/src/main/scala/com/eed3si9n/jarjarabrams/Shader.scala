@@ -18,9 +18,8 @@ object Shader {
   ): Unit = {
     val shader = bytecodeShader(rules, verbose, skipManifest)
     Zip.transformJarFile(inputJar, outputJar, resetTimestamp, warnOnDuplicateClass) { struct0 =>
-      shader(struct0.data, struct0.name).map {
-        case (shadedBytes, shadedName) =>
-          Zip.entryStruct(shadedName, struct0.time, shadedBytes, struct0.skipTransform)
+      shader(struct0.data, struct0.name).map { case (shadedBytes, shadedName) =>
+        Zip.entryStruct(shadedName, struct0.time, shadedBytes, struct0.skipTransform)
       }
     }
   }
@@ -69,17 +68,16 @@ object Shader {
       verbose: Boolean,
       skipManifest: Boolean
   ): (Array[Byte], String) => Option[(Array[Byte], String)] =
-    if (rules.isEmpty)(bytes, mapping) => Some(bytes -> mapping)
+    if (rules.isEmpty) (bytes, mapping) => Some(bytes -> mapping)
     else {
       val jjrules = rules.flatMap { r =>
         r.shadePattern match {
           case ShadePattern.Rename(patterns) =>
-            patterns.map {
-              case (from, to) =>
-                val jrule = new Rule()
-                jrule.setPattern(from)
-                jrule.setResult(to)
-                jrule
+            patterns.map { case (from, to) =>
+              val jrule = new Rule()
+              jrule.setPattern(from)
+              jrule.setResult(to)
+              jrule
             }
           case ShadePattern.Zap(patterns) =>
             patterns.map { pattern =>
