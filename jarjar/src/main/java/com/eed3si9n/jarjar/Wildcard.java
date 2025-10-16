@@ -26,6 +26,7 @@ class Wildcard
     private static Pattern dstar = Pattern.compile("\\*\\*");
     private static Pattern star  = Pattern.compile("\\*");
     private static Pattern estar = Pattern.compile("\\+\\??\\)\\Z");
+    private static Pattern dollar  = Pattern.compile("\\$");
 
     private final Pattern pattern;
     private final int count;
@@ -45,6 +46,7 @@ class Wildcard
         regex = replaceAllLiteral(dstar, regex, "(.+?)");
         regex = replaceAllLiteral(star, regex, "([^/]+)");
         regex = replaceAllLiteral(estar, regex, "*)");
+        regex = replaceAllLiteral(dollar, regex, "\\$");
         this.pattern = Pattern.compile("\\A" + regex + "\\Z");
         this.count = this.pattern.matcher("foo").groupCount();
 
