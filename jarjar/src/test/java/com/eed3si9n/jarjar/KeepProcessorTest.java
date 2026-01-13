@@ -21,7 +21,10 @@ public class KeepProcessorTest
         assertTrue(keepProcessor.process(entryStruct));
 
         entryStruct.name = "com/example/Object.class";
-        assertFalse(keepProcessor.process(entryStruct));
+        assertTrue(keepProcessor.process(entryStruct));
+
+        assertFalse(keepProcessor.getExcludes().contains("org/example/Object"));
+        assertTrue(keepProcessor.getExcludes().contains("com/example/Object"));
     }
 
     @Test
@@ -35,6 +38,9 @@ public class KeepProcessorTest
         assertTrue(keepProcessor.process(entryStruct));
 
         entryStruct.name = "META-INF/versions/8/com/example/Object.class";
-        assertFalse(keepProcessor.process(entryStruct));
+        assertTrue(keepProcessor.process(entryStruct));
+
+        assertFalse(keepProcessor.getExcludes().contains("META-INF/versions/9/org/example/Object"));
+        assertTrue(keepProcessor.getExcludes().contains("META-INF/versions/8/com/example/Object"));
     }
 }

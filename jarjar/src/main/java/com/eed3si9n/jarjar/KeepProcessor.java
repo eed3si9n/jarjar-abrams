@@ -73,10 +73,9 @@ class KeepProcessor extends Remapper implements JarProcessor
             for (Wildcard wildcard : wildcards) {
                 if (wildcard.matches(name)) {
                     roots.add(name);
-                    return true;
+                    break;
                 }
             }
-            return false;
         }
         return true;
     }
