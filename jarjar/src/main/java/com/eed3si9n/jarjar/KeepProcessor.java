@@ -67,7 +67,8 @@ class KeepProcessor extends Remapper implements JarProcessor
                         ClassReader.EXPAND_FRAMES);
                 currentDependenciesSet.remove(name);
             } catch (Exception e) {
-                System.err.println("Error reading " + struct.name + ": " + e.getMessage());
+                System.err.println("[KeepProcessor] Error reading " + struct.name + ": " + e.getMessage());
+                e.printStackTrace(System.err);
             }
 
             for (Wildcard wildcard : wildcards) {
