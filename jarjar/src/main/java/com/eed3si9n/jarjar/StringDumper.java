@@ -35,7 +35,8 @@ class StringDumper
                 try {
                     new ClassReader(in).accept(stringReader, 0);
                 } catch (Exception e) {
-                    System.err.println("Error reading " + entry.getName() + ": " + e.getMessage());
+                    System.err.println("[StringDumper] Error reading " + entry.getName() + ": " + e.getMessage());
+                    e.printStackTrace(System.err);
                 } finally {
                     in.close();
                 }

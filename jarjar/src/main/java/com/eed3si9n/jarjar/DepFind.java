@@ -44,7 +44,8 @@ public class DepFind
                   header.read(in);
                   classes.put(header.getClassName(), entry.getSource());
                 } catch (Exception e) {
-                  System.err.println("Error reading " + entry.getName() + ": " + e.getMessage());
+                  System.err.println("[DepFind] Error reading " + entry.getName() + ": " + e.getMessage());
+                  e.printStackTrace(System.err);
                 } finally {
                   in.close();
                 }
@@ -64,7 +65,8 @@ public class DepFind
                       new DepFindVisitor(classes, entry.getSource(), handler),
                       ClassReader.SKIP_DEBUG);
                 } catch (Exception e) {
-                  System.err.println("Error reading " + entry.getName() + ": " + e.getMessage());
+                  System.err.println("[DepFind] Error reading " + entry.getName() + ": " + e.getMessage());
+                  e.printStackTrace(System.err);
                 } finally {
                   in.close();
                 }

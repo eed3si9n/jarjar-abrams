@@ -116,6 +116,10 @@ class JJProcessor(
           System.err.println(s"Skipped $name without processing because $name == ${struct.name}")
         }
       }
+    } else {
+      if (verbose) {
+        System.err.println(s"Removed $name due to chain rejection")
+      }
     }
     keepIt
   }

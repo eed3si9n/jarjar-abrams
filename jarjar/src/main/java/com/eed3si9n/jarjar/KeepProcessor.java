@@ -56,27 +56,36 @@ class KeepProcessor extends Remapper implements JarProcessor
         }
     }
 
+    private final Object csdMutex = new Object();
     private Set<String> currentDependenciesSet;
 
     public boolean process(EntryStruct struct) throws IOException {
         if (struct.name.endsWith(".class")) {
             String name = struct.name.substring(0, struct.name.length() - 6);
-            depend.put(name, currentDependenciesSet = new HashSet<String>());
+
+            synchronized (csdMutex) {
+                currentDependenciesSet = new HashSet<String>();
+                depend.put(name, currentDependenciesSet);
+            }
+
             try {
                 new ClassReader(new ByteArrayInputStream(struct.data)).accept(cv,
                         ClassReader.EXPAND_FRAMES);
-                currentDependenciesSet.remove(name);
+
+                synchronized (csdMutex) {
+                    currentDependenciesSet.remove(name);
+                }
             } catch (Exception e) {
-                System.err.println("Error reading " + struct.name + ": " + e.getMessage());
+                System.err.println("[KeepProcessor] Error reading " + struct.name + ": " + e.getMessage());
+                e.printStackTrace(System.err);
             }
 
             for (Wildcard wildcard : wildcards) {
                 if (wildcard.matches(name)) {
                     roots.add(name);
-                    return true;
+                    break;
                 }
             }
-            return false;
         }
         return true;
     }
@@ -84,7 +93,9 @@ class KeepProcessor extends Remapper implements JarProcessor
     public String map(String key) {
         if (key.startsWith("java/") || key.startsWith("javax/"))
             return null;
-        currentDependenciesSet.add(key);
+        synchronized (csdMutex) {
+            currentDependenciesSet.add(key);
+        }
         return null;
     }
 
