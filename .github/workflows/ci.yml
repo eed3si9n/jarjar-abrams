@@ -14,13 +14,16 @@ jobs:
             jobtype: 1
           - os: windows-latest
             java: 8
-            jobtype: 2
+            jobtype: 1
           - os: ubuntu-latest
             java: 11
             jobtype: 1
           - os: ubuntu-latest
+            java: 25
+            jobtype: 1
+          - os: ubuntu-latest
             java: 11
-            jobtype: 3
+            jobtype: 2
     runs-on: ${{ matrix.os }}
     env:
       # define Java options for both official sbt and sbt-extras
@@ -45,32 +48,6 @@ jobs:
       if: ${{ matrix.jobtype == 2 }}
       shell: bash
       run: |
-        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "+test" "publishLocal;scripted"
-    - name: Build and test (3)
-      if: ${{ matrix.jobtype == 3 }}
-      shell: bash
-      run: |
         find **/src/main/contraband-scala -name "*.scala" -delete
         sbt -v -Dfile.encoding=UTF8 generateContrabands scalafmtSbtCheck scalafmtCheckAll
         git diff --exit-code # check contrabands
-
-  ea-test:
-    runs-on: ubuntu-latest
-    env:
-      # define Java options for both official sbt and sbt-extras
-      JAVA_OPTS: -Xms2048M -Xmx2048M -Xss6M -XX:ReservedCodeCacheSize=256M -Dfile.encoding=UTF-8
-      JVM_OPTS:  -Xms2048M -Xmx2048M -Xss6M -XX:ReservedCodeCacheSize=256M -Dfile.encoding=UTF-8
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v6
-    - name: Setup JDK
-      uses: actions/setup-java@v5
-      with:
-        java-version: 25
-        distribution: temurin
-        cache: sbt
-    - uses: sbt/setup-sbt@v1
-    - name: Build and test
-      shell: bash
-      run: |
-        sbt -v -Dfile.encoding=UTF8 "jarjar/publishLocal" "+test" "publishLocal;scripted"
