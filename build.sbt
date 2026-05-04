@@ -159,7 +159,7 @@ lazy val core = project
     Compile / scalacOptions ++= {
       if (scalaVersion.value.startsWith("2.13.")) Vector("-Xlint", "-Xsource:3")
       else if (scalaVersion.value.startsWith("2.12."))
-        Vector("-Xlint", "-Xsource:3", "-Xfatal-warnings")
+        Vector("-Xlint", "-Xsource:3", "-Werror")
       else Vector("-Xlint")
     }
   })
@@ -170,7 +170,7 @@ lazy val sbtplugin = project
   .settings(nocomma {
     name := "sbt-jarjar-abrams"
 
-    Compile / scalacOptions ++= Vector("-Xlint", "-Xfatal-warnings")
+    Compile / scalacOptions ++= Vector("-Xlint", "-Werror")
 
     scriptedLaunchOpts := {
       scriptedLaunchOpts.value ++
