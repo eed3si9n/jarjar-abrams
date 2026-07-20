@@ -33,7 +33,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = false,
       expectedClass = expectedShapelessClass,
-      expectedSha = "b0675ab6b2171faad08de45ccbc4674df569e03b434745ebd9e7442cd7846796"
+      expectedSha = "fc7a6acf1e9bc09789240385847bcb5af62230ff6ee60a11896075d10a5bff11"
     )
   }
 
@@ -42,7 +42,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = true,
       expectedClass = expectedShapelessClass,
-      expectedSha = "68ac892591bb30eb2ba5c0c2c3195e7529e15bacd221b8bb3d75b154f5a4ce76"
+      expectedSha = "a72b5de6fd4c0befb0c27423c44cf4645f51d67812a6edc0bb3c6abf0e115105"
     )
   }
 
