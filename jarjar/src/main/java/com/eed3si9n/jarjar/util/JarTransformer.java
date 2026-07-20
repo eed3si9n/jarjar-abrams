@@ -20,7 +20,9 @@ import java.io.*;
 
 import static com.eed3si9n.jarjar.misplaced.MisplacedClassProcessor.VERSIONED_CLASS_FOLDER;
 
+import com.eed3si9n.jarjar.ScalaInlineInfoAttribute;
 import com.eed3si9n.jarjar.TracingRemapper;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -45,7 +47,10 @@ abstract public class JarTransformer extends RemappingJarProcessor {
 
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
             try {
-                reader.accept(transform(w, remapper), ClassReader.EXPAND_FRAMES);
+                // Parse Scala's ScalaInlineInfo instead of copying it verbatim, so
+                // its constant-pool references are re-emitted into the rebuilt pool.
+                Attribute[] prototypes = { new ScalaInlineInfoAttribute() };
+                reader.accept(transform(w, remapper), prototypes, ClassReader.EXPAND_FRAMES);
             } catch (RuntimeException e) {
                 throw new IOException("Unable to transform " + struct.name, e);
             }

@@ -149,9 +149,9 @@ public class ScalaInlineInfoTest extends TestCase {
         assertFalse("fixture should carry ScalaInlineInfo method entries", before.isEmpty());
 
         boolean preserved = before.equals(inlineInfoMethods(shade(original)));
-        // BUG (scalameta/scalameta#3338): jarjar copies ScalaInlineInfo verbatim,
-        // so its references dangle against the rebuilt pool and the method set is
-        // not carried through shading.
-        assertFalse(preserved);
+        // Parsing and re-emitting ScalaInlineInfo through the rebuilt pool keeps
+        // its references valid, so the method set survives shading intact
+        // (scalameta/scalameta#3338).
+        assertTrue(preserved);
     }
 }
