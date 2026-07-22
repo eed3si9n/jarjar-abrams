@@ -200,7 +200,7 @@ ThisBuild / pomIncludeRepository := { _ =>
 }
 ThisBuild / publishTo := {
   val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
-  if (version.value.endsWith("-SNAPSHOT")) Some("central-snapshots" at centralSnapshots)
+  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
   else localStaging.value
 }
 ThisBuild / publishMavenStyle := true
