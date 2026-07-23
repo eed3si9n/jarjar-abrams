@@ -101,11 +101,15 @@ public class ScalaInlineInfoAttribute extends Attribute {
     @Override
     protected Attribute read(ClassReader cr, int off, int len, char[] buf, int codeOff, Label[] labels) {
         int version = cr.readByte(off);
-        if (version != VERSION) {
-            byte[] raw = new byte[len];
-            for (int i = 0; i < len; i++) raw[i] = (byte) cr.readByte(off + i);
-            return new ScalaInlineInfoAttribute(version, 0, null, null, null, null, null, null, raw);
+        if (version == VERSION) {
+            return readVersion1(cr, off, len, buf);
         }
+        byte[] raw = new byte[len];
+        for (int i = 0; i < len; i++) raw[i] = (byte) cr.readByte(off + i);
+        return new ScalaInlineInfoAttribute(version, 0, null, null, null, null, null, null, raw);
+    }
+
+    private ScalaInlineInfoAttribute readVersion1(ClassReader cr, int off, int len, char[] buf) {
         int p = off + 1;
         int flags = cr.readByte(p); p += 1;
         String selfType = null;
@@ -127,7 +131,7 @@ public class ScalaInlineInfoAttribute extends Attribute {
             descs[i] = cr.readUTF8(p, buf); p += 2;
             methodFlags[i] = cr.readByte(p); p += 1;
         }
-        return new ScalaInlineInfoAttribute(version, flags, selfType, samName, samDesc, names, descs, methodFlags, null);
+        return new ScalaInlineInfoAttribute(VERSION, flags, selfType, samName, samDesc, names, descs, methodFlags, null);
     }
 
     @Override
