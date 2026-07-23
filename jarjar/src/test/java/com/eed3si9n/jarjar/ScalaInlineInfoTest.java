@@ -115,6 +115,7 @@ public class ScalaInlineInfoTest extends TestCase {
                 int p = data + 1;
                 int flags = b[p] & 0xff;
                 p += 1;
+                if ((flags & 0x2) != 0) p += 2; // self type: not a method entry
                 if ((flags & 0x4) != 0) p += 4; // SAM name+desc: not a method entry
                 int n = u2(b, p);
                 p += 2;
@@ -171,21 +172,17 @@ public class ScalaInlineInfoTest extends TestCase {
      * A Scala 2.11 trait interface carries a {@code ScalaInlineInfo} whose flags
      * set the {@code 0x2} self-type bit (dropped by Scala 2.12+). The fixture is
      * {@code argonaut.GeneratedEncodeJsons} from argonaut 6.2-RC2 (a resolved
-     * test dependency). The reader does not consume the self-type reference, so
-     * shading misaligns {@code numEntries} and runs off the constant pool.
+     * test dependency). Consuming and re-emitting the self-type reference keeps
+     * {@code numEntries} aligned, so the method set survives shading intact.
      */
     @Test
     public void testShadeScala211TraitWithSelfType() throws IOException {
         byte[] original = classpathFixture("argonaut/GeneratedEncodeJsons.class");
-        try {
-            shade(original, "argonaut/GeneratedEncodeJsons.class", "argonaut.**", "shaded.argonaut.@1");
-            fail("expected shading to run off the constant pool");
-        } catch (IOException expected) {
-            // Specifically the transform failing to read the attribute — not,
-            // say, a FileNotFoundException from a missing fixture.
-            assertTrue(expected.getMessage(), expected.getMessage().contains("Unable to transform"));
-            assertTrue(String.valueOf(expected.getCause()),
-                expected.getCause() instanceof ArrayIndexOutOfBoundsException);
-        }
+        Set<String> before = inlineInfoMethods(original);
+        assertFalse("fixture should carry ScalaInlineInfo method entries", before.isEmpty());
+
+        boolean preserved = before.equals(
+            inlineInfoMethods(shade(original, "argonaut/GeneratedEncodeJsons.class", "argonaut.**", "shaded.argonaut.@1")));
+        assertTrue(preserved);
     }
 }
