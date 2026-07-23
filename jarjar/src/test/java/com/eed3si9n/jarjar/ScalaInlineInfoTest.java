@@ -11,6 +11,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import junit.framework.TestCase;
 import org.junit.Test;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ByteVector;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import com.eed3si9n.jarjar.util.EntryStruct;
 import com.eed3si9n.jarjar.util.IoUtil;
 import com.eed3si9n.jarjar.util.JarTransformerChain;
@@ -184,5 +188,80 @@ public class ScalaInlineInfoTest extends TestCase {
         boolean preserved = before.equals(
             inlineInfoMethods(shade(original, "argonaut/GeneratedEncodeJsons.class", "argonaut.**", "shaded.argonaut.@1")));
         assertTrue(preserved);
+    }
+
+    /** A minimal class carrying {@code attr} bytes as its ScalaInlineInfo attribute. */
+    private static byte[] classWithRawInlineInfo(final byte[] attr) {
+        ClassWriter cw = new ClassWriter(0);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, "pkg/Widget", null, "java/lang/Object", null);
+        cw.visitAttribute(new Attribute("ScalaInlineInfo") {
+            @Override
+            protected ByteVector write(ClassWriter cw, byte[] code, int codeLen, int maxStack, int maxLocals) {
+                return new ByteVector().putByteArray(attr, 0, attr.length);
+            }
+        });
+        cw.visitEnd();
+        return cw.toByteArray();
+    }
+
+    /** The raw payload bytes of the class's ScalaInlineInfo attribute, or null. */
+    private static byte[] inlineInfoAttrBytes(byte[] b) {
+        int cpCount = u2(b, 8);
+        String[] utf8 = new String[cpCount];
+        int off = 10;
+        for (int i = 1; i < cpCount; i++) {
+            int tag = b[off++] & 0xff;
+            switch (tag) {
+                case 1: {
+                    int len = u2(b, off);
+                    off += 2;
+                    utf8[i] = new String(b, off, len, StandardCharsets.UTF_8);
+                    off += len;
+                    break;
+                }
+                case 7: case 8: case 16: case 19: case 20: off += 2; break;
+                case 15: off += 3; break;
+                case 3: case 4: case 9: case 10: case 11: case 12: case 17: case 18: off += 4; break;
+                case 5: case 6: off += 8; i++; break;
+                default: throw new IllegalStateException("unexpected constant pool tag " + tag);
+            }
+        }
+        off += 6;
+        off += 2 + 2 * u2(b, off);
+        off = skipMembers(b, off);
+        off = skipMembers(b, off);
+        int nAttrs = u2(b, off);
+        off += 2;
+        for (int i = 0; i < nAttrs; i++) {
+            int nameIdx = u2(b, off);
+            int len = u4(b, off + 2);
+            int data = off + 6;
+            if ("ScalaInlineInfo".equals(utf8[nameIdx])) return Arrays.copyOfRange(b, data, data + len);
+            off = data + len;
+        }
+        return null;
+    }
+
+    /**
+     * A ScalaInlineInfo whose {@code 0x4} SAM flag points its name reference off
+     * the constant pool: version 1, but a layout the reader can't resolve. The
+     * reader follows the bogus reference and the transform currently throws.
+     */
+    @Test
+    public void testUnrecognizedInlineInfoLayout() throws IOException {
+        byte[] attr = { 1, 0x4, (byte) 0xff, (byte) 0xff, 0, 0 }; // version, flags=SAM, bogus samName, samDesc=0
+        byte[] original = classWithRawInlineInfo(attr);
+        assertNotNull(inlineInfoAttrBytes(original));
+
+        try {
+            shade(original, "pkg/Widget.class", "pkg.**", "shaded.pkg.@1");
+            fail("expected the reader to run off the constant pool");
+        } catch (IOException expected) {
+            // Specifically the transform failing to read the attribute — not,
+            // say, a FileNotFoundException from a missing fixture.
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Unable to transform"));
+            assertTrue(String.valueOf(expected.getCause()),
+                expected.getCause() instanceof ArrayIndexOutOfBoundsException);
+        }
     }
 }
