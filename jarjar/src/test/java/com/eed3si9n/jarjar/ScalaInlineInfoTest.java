@@ -2,6 +2,7 @@ package com.eed3si9n.jarjar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -37,6 +38,19 @@ public class ScalaInlineInfoTest extends TestCase {
             return out.toByteArray();
         } finally {
             zf.close();
+        }
+    }
+
+    /** Reads a .class file off the test classpath (from a resolved fixture dependency). */
+    private static byte[] classpathFixture(String entry) throws IOException {
+        InputStream in = ScalaInlineInfoTest.class.getClassLoader().getResourceAsStream(entry);
+        assertNotNull(entry + " not on the test classpath", in);
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            IoUtil.pipe(in, out, new byte[0x2000]);
+            return out.toByteArray();
+        } finally {
+            in.close();
         }
     }
 
@@ -151,5 +165,27 @@ public class ScalaInlineInfoTest extends TestCase {
         // its references valid, so the method set survives shading intact
         // (scalameta/scalameta#3338).
         assertTrue(preserved);
+    }
+
+    /**
+     * A Scala 2.11 trait interface carries a {@code ScalaInlineInfo} whose flags
+     * set the {@code 0x2} self-type bit (dropped by Scala 2.12+). The fixture is
+     * {@code argonaut.GeneratedEncodeJsons} from argonaut 6.2-RC2 (a resolved
+     * test dependency). The reader does not consume the self-type reference, so
+     * shading misaligns {@code numEntries} and runs off the constant pool.
+     */
+    @Test
+    public void testShadeScala211TraitWithSelfType() throws IOException {
+        byte[] original = classpathFixture("argonaut/GeneratedEncodeJsons.class");
+        try {
+            shade(original, "argonaut/GeneratedEncodeJsons.class", "argonaut.**", "shaded.argonaut.@1");
+            fail("expected shading to run off the constant pool");
+        } catch (IOException expected) {
+            // Specifically the transform failing to read the attribute — not,
+            // say, a FileNotFoundException from a missing fixture.
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Unable to transform"));
+            assertTrue(String.valueOf(expected.getCause()),
+                expected.getCause() instanceof ArrayIndexOutOfBoundsException);
+        }
     }
 }

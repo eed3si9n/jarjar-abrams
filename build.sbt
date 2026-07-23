@@ -27,6 +27,10 @@ lazy val jarjar = project
       "org.ow2.asm" % "asm-commons" % "9.10.1",
     )
     libraryDependencies ++= junit
+    // Scala 2.11 test fixture: a trait interface whose ScalaInlineInfo carries
+    // a self type (the 0x2 flag Scala 2.12+ dropped). Resolved rather than
+    // vendored so its provenance stays a plain Maven coordinate.
+    libraryDependencies += "io.argonaut" % "argonaut_2.11" % "6.2-RC2" % Test intransitive ()
 
     mainClass := Some("com.eed3si9n.jarjar.Main")
 
