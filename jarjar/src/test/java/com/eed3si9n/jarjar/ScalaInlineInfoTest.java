@@ -2,6 +2,7 @@ package com.eed3si9n.jarjar;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -27,25 +28,35 @@ import com.eed3si9n.jarjar.util.RemappingClassTransformer;
  */
 public class ScalaInlineInfoTest extends TestCase {
 
-    private static final String FIXTURE_JAR = "example/shapeless_2.12-2.3.2.jar";
-    private static final String FIXTURE_ENTRY = "shapeless/syntax/HListOps.class";
-
-    private static byte[] fixture() throws IOException {
-        ZipFile zf = new ZipFile(FIXTURE_JAR);
+    private static byte[] fixture(String jar, String entry) throws IOException {
+        ZipFile zf = new ZipFile(jar);
         try {
-            ZipEntry entry = zf.getEntry(FIXTURE_ENTRY);
-            assertNotNull(FIXTURE_ENTRY + " missing from " + FIXTURE_JAR, entry);
+            ZipEntry ze = zf.getEntry(entry);
+            assertNotNull(entry + " missing from " + jar, ze);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            IoUtil.pipe(zf.getInputStream(entry), out, new byte[0x2000]);
+            IoUtil.pipe(zf.getInputStream(ze), out, new byte[0x2000]);
             return out.toByteArray();
         } finally {
             zf.close();
         }
     }
 
-    private static byte[] shade(byte[] classBytes) throws IOException {
+    /** Reads a .class file off the test classpath (from a resolved fixture dependency). */
+    private static byte[] classpathFixture(String entry) throws IOException {
+        InputStream in = ScalaInlineInfoTest.class.getClassLoader().getResourceAsStream(entry);
+        assertNotNull(entry + " not on the test classpath", in);
+        try {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            IoUtil.pipe(in, out, new byte[0x2000]);
+            return out.toByteArray();
+        } finally {
+            in.close();
+        }
+    }
+
+    private static byte[] shade(byte[] classBytes, String entry, String pattern, String result) throws IOException {
         EntryStruct e = new EntryStruct();
-        e.name = FIXTURE_ENTRY;
+        e.name = entry;
         e.skipTransform = false;
         e.time = 0;
         e.data = classBytes;
@@ -53,8 +64,8 @@ public class ScalaInlineInfoTest extends TestCase {
         // rebuilds its constant pool; classes it need not touch are copied
         // verbatim, leaving the attribute trivially intact.
         Rule rule = new Rule();
-        rule.setPattern("shapeless.**");
-        rule.setResult("shaded.shapeless.@1");
+        rule.setPattern(pattern);
+        rule.setResult(result);
         PackageRemapper pr = new PackageRemapper(Arrays.asList(rule), false);
         new JarTransformerChain(new RemappingClassTransformer[] { new RemappingClassTransformer() }, pr)
             .process(e);
@@ -104,6 +115,7 @@ public class ScalaInlineInfoTest extends TestCase {
                 int p = data + 1;
                 int flags = b[p] & 0xff;
                 p += 1;
+                if ((flags & 0x2) != 0) p += 2; // self type: not a method entry
                 if ((flags & 0x4) != 0) p += 4; // SAM name+desc: not a method entry
                 int n = u2(b, p);
                 p += 2;
@@ -144,14 +156,33 @@ public class ScalaInlineInfoTest extends TestCase {
 
     @Test
     public void testShadeClassWithScalaInlineInfo() throws IOException {
-        byte[] original = fixture();
+        byte[] original = fixture("example/shapeless_2.12-2.3.2.jar", "shapeless/syntax/HListOps.class");
         Set<String> before = inlineInfoMethods(original);
         assertFalse("fixture should carry ScalaInlineInfo method entries", before.isEmpty());
 
-        boolean preserved = before.equals(inlineInfoMethods(shade(original)));
+        boolean preserved = before.equals(
+            inlineInfoMethods(shade(original, "shapeless/syntax/HListOps.class", "shapeless.**", "shaded.shapeless.@1")));
         // Parsing and re-emitting ScalaInlineInfo through the rebuilt pool keeps
         // its references valid, so the method set survives shading intact
         // (scalameta/scalameta#3338).
+        assertTrue(preserved);
+    }
+
+    /**
+     * A Scala 2.11 trait interface carries a {@code ScalaInlineInfo} whose flags
+     * set the {@code 0x2} self-type bit (dropped by Scala 2.12+). The fixture is
+     * {@code argonaut.GeneratedEncodeJsons} from argonaut 6.2-RC2 (a resolved
+     * test dependency). Consuming and re-emitting the self-type reference keeps
+     * {@code numEntries} aligned, so the method set survives shading intact.
+     */
+    @Test
+    public void testShadeScala211TraitWithSelfType() throws IOException {
+        byte[] original = classpathFixture("argonaut/GeneratedEncodeJsons.class");
+        Set<String> before = inlineInfoMethods(original);
+        assertFalse("fixture should carry ScalaInlineInfo method entries", before.isEmpty());
+
+        boolean preserved = before.equals(
+            inlineInfoMethods(shade(original, "argonaut/GeneratedEncodeJsons.class", "argonaut.**", "shaded.argonaut.@1")));
         assertTrue(preserved);
     }
 }

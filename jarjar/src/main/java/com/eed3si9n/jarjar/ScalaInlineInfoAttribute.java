@@ -39,11 +39,19 @@ import org.objectweb.asm.Label;
  * <p>Layout (see {@code scala.tools.nsc.backend.jvm.opt.InlineInfoAttribute}):
  * <pre>
  *   u1 version
- *   u1 flags                       // bit 0x4 =&gt; a SAM name/desc pair follows
+ *   u1 flags                       // 0x1 final, 0x2 self type, 0x4 SAM, 0x8 late interfaces
+ *   [u2 selfType]                  // present iff (flags &amp; 0x2)
  *   [u2 samName; u2 samDesc]       // present iff (flags &amp; 0x4)
  *   u2 numEntries
  *   numEntries * { u2 name; u2 desc; u1 methodFlags }
  * </pre>
+ *
+ * <p>The {@code 0x2} self type reference (a trait's {@code traitImplClassSelfType})
+ * is no longer emitted by Scala 2.12+, but classes compiled by Scala 2.11 — e.g.
+ * a trait interface like {@code argonaut.GeneratedEncodeJsons} — still carry it.
+ * Skipping it misreads {@code numEntries} from the wrong offset and walks the
+ * reader off the constant pool. Its value is unused by the inliner, but the u2
+ * must be consumed and re-emitted to keep the layout valid.
  *
  * <p>The descriptor strings are copied unchanged: they name the class's own
  * members, and on the rare method whose descriptor mentions a relocated type
@@ -58,10 +66,12 @@ import org.objectweb.asm.Label;
 public class ScalaInlineInfoAttribute extends Attribute {
 
     private static final int VERSION = 1;
+    private static final int HAS_SELF = 0x2;
     private static final int HAS_SAM = 0x4;
 
     private int version;
     private int flags;
+    private String selfType;
     private String samName;
     private String samDesc;
     private String[] names;
@@ -74,11 +84,12 @@ public class ScalaInlineInfoAttribute extends Attribute {
         super("ScalaInlineInfo");
     }
 
-    private ScalaInlineInfoAttribute(int version, int flags, String samName, String samDesc,
+    private ScalaInlineInfoAttribute(int version, int flags, String selfType, String samName, String samDesc,
                                      String[] names, String[] descs, int[] methodFlags, byte[] verbatim) {
         super("ScalaInlineInfo");
         this.version = version;
         this.flags = flags;
+        this.selfType = selfType;
         this.samName = samName;
         this.samDesc = samDesc;
         this.names = names;
@@ -93,10 +104,14 @@ public class ScalaInlineInfoAttribute extends Attribute {
         if (version != VERSION) {
             byte[] raw = new byte[len];
             for (int i = 0; i < len; i++) raw[i] = (byte) cr.readByte(off + i);
-            return new ScalaInlineInfoAttribute(version, 0, null, null, null, null, null, raw);
+            return new ScalaInlineInfoAttribute(version, 0, null, null, null, null, null, null, raw);
         }
         int p = off + 1;
         int flags = cr.readByte(p); p += 1;
+        String selfType = null;
+        if ((flags & HAS_SELF) != 0) {
+            selfType = cr.readUTF8(p, buf); p += 2;
+        }
         String samName = null;
         String samDesc = null;
         if ((flags & HAS_SAM) != 0) {
@@ -112,7 +127,7 @@ public class ScalaInlineInfoAttribute extends Attribute {
             descs[i] = cr.readUTF8(p, buf); p += 2;
             methodFlags[i] = cr.readByte(p); p += 1;
         }
-        return new ScalaInlineInfoAttribute(version, flags, samName, samDesc, names, descs, methodFlags, null);
+        return new ScalaInlineInfoAttribute(version, flags, selfType, samName, samDesc, names, descs, methodFlags, null);
     }
 
     @Override
@@ -124,6 +139,9 @@ public class ScalaInlineInfoAttribute extends Attribute {
         }
         b.putByte(version);
         b.putByte(flags);
+        if ((flags & HAS_SELF) != 0) {
+            b.putShort(ref(cw, selfType));
+        }
         if ((flags & HAS_SAM) != 0) {
             b.putShort(ref(cw, samName));
             b.putShort(ref(cw, samDesc));
