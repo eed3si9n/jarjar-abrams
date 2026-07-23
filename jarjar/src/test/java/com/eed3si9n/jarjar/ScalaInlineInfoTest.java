@@ -27,25 +27,22 @@ import com.eed3si9n.jarjar.util.RemappingClassTransformer;
  */
 public class ScalaInlineInfoTest extends TestCase {
 
-    private static final String FIXTURE_JAR = "example/shapeless_2.12-2.3.2.jar";
-    private static final String FIXTURE_ENTRY = "shapeless/syntax/HListOps.class";
-
-    private static byte[] fixture() throws IOException {
-        ZipFile zf = new ZipFile(FIXTURE_JAR);
+    private static byte[] fixture(String jar, String entry) throws IOException {
+        ZipFile zf = new ZipFile(jar);
         try {
-            ZipEntry entry = zf.getEntry(FIXTURE_ENTRY);
-            assertNotNull(FIXTURE_ENTRY + " missing from " + FIXTURE_JAR, entry);
+            ZipEntry ze = zf.getEntry(entry);
+            assertNotNull(entry + " missing from " + jar, ze);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            IoUtil.pipe(zf.getInputStream(entry), out, new byte[0x2000]);
+            IoUtil.pipe(zf.getInputStream(ze), out, new byte[0x2000]);
             return out.toByteArray();
         } finally {
             zf.close();
         }
     }
 
-    private static byte[] shade(byte[] classBytes) throws IOException {
+    private static byte[] shade(byte[] classBytes, String entry, String pattern, String result) throws IOException {
         EntryStruct e = new EntryStruct();
-        e.name = FIXTURE_ENTRY;
+        e.name = entry;
         e.skipTransform = false;
         e.time = 0;
         e.data = classBytes;
@@ -53,8 +50,8 @@ public class ScalaInlineInfoTest extends TestCase {
         // rebuilds its constant pool; classes it need not touch are copied
         // verbatim, leaving the attribute trivially intact.
         Rule rule = new Rule();
-        rule.setPattern("shapeless.**");
-        rule.setResult("shaded.shapeless.@1");
+        rule.setPattern(pattern);
+        rule.setResult(result);
         PackageRemapper pr = new PackageRemapper(Arrays.asList(rule), false);
         new JarTransformerChain(new RemappingClassTransformer[] { new RemappingClassTransformer() }, pr)
             .process(e);
@@ -144,11 +141,12 @@ public class ScalaInlineInfoTest extends TestCase {
 
     @Test
     public void testShadeClassWithScalaInlineInfo() throws IOException {
-        byte[] original = fixture();
+        byte[] original = fixture("example/shapeless_2.12-2.3.2.jar", "shapeless/syntax/HListOps.class");
         Set<String> before = inlineInfoMethods(original);
         assertFalse("fixture should carry ScalaInlineInfo method entries", before.isEmpty());
 
-        boolean preserved = before.equals(inlineInfoMethods(shade(original)));
+        boolean preserved = before.equals(
+            inlineInfoMethods(shade(original, "shapeless/syntax/HListOps.class", "shapeless.**", "shaded.shapeless.@1")));
         // Parsing and re-emitting ScalaInlineInfo through the rebuilt pool keeps
         // its references valid, so the method set survives shading intact
         // (scalameta/scalameta#3338).
