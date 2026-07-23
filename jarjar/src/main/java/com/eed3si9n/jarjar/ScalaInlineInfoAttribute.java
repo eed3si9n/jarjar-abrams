@@ -59,9 +59,11 @@ import org.objectweb.asm.Label;
  * info derived from the bytecode. That is a conservative loss of a hint, never
  * an incorrect inline.
  *
- * <p>Only {@code version} 1 is understood. A future format is left byte-for-byte
- * as-is (the pre-existing verbatim copy) rather than misparsed, so this stays a
- * strict improvement even if Scala's layout evolves.
+ * <p>Only {@code version} 1 is understood, and only a layout that parses cleanly
+ * and consumes exactly the attribute length is re-emitted. Anything else — a
+ * future version, a v1 layout that doesn't add up, or references that run off
+ * the pool — is left byte-for-byte as-is (a verbatim copy) rather than
+ * misparsed, so this stays a strict improvement even if Scala's layout evolves.
  */
 public class ScalaInlineInfoAttribute extends Attribute {
 
@@ -102,7 +104,13 @@ public class ScalaInlineInfoAttribute extends Attribute {
     protected Attribute read(ClassReader cr, int off, int len, char[] buf, int codeOff, Label[] labels) {
         int version = cr.readByte(off);
         if (version == VERSION) {
-            return readVersion1(cr, off, len, buf);
+            try {
+                ScalaInlineInfoAttribute parsed = readVersion1(cr, off, len, buf);
+                if (parsed != null) return parsed;
+            } catch (RuntimeException layoutNotUnderstood) {
+                // References ran off the constant pool: the layout isn't one we
+                // model. Fall through to the verbatim copy below.
+            }
         }
         byte[] raw = new byte[len];
         for (int i = 0; i < len; i++) raw[i] = (byte) cr.readByte(off + i);
@@ -131,6 +139,11 @@ public class ScalaInlineInfoAttribute extends Attribute {
             descs[i] = cr.readUTF8(p, buf); p += 2;
             methodFlags[i] = cr.readByte(p); p += 1;
         }
+        // A layout we understand is consumed exactly. If our offsets disagree
+        // with the declared length, this class uses a format we don't model;
+        // return null so read() copies it verbatim rather than re-emit a
+        // truncated/mis-encoded attribute.
+        if (p - off != len) return null;
         return new ScalaInlineInfoAttribute(VERSION, flags, selfType, samName, samDesc, names, descs, methodFlags, null);
     }
 

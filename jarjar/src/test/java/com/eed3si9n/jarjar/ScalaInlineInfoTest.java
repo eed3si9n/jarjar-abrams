@@ -244,8 +244,8 @@ public class ScalaInlineInfoTest extends TestCase {
 
     /**
      * A ScalaInlineInfo whose {@code 0x4} SAM flag points its name reference off
-     * the constant pool: version 1, but a layout the reader can't resolve. The
-     * reader follows the bogus reference and the transform currently throws.
+     * the constant pool: version 1, but a layout the reader can't resolve. It is
+     * copied verbatim rather than crashing the transform.
      */
     @Test
     public void testUnrecognizedInlineInfoLayout() throws IOException {
@@ -253,15 +253,7 @@ public class ScalaInlineInfoTest extends TestCase {
         byte[] original = classWithRawInlineInfo(attr);
         assertNotNull(inlineInfoAttrBytes(original));
 
-        try {
-            shade(original, "pkg/Widget.class", "pkg.**", "shaded.pkg.@1");
-            fail("expected the reader to run off the constant pool");
-        } catch (IOException expected) {
-            // Specifically the transform failing to read the attribute — not,
-            // say, a FileNotFoundException from a missing fixture.
-            assertTrue(expected.getMessage(), expected.getMessage().contains("Unable to transform"));
-            assertTrue(String.valueOf(expected.getCause()),
-                expected.getCause() instanceof ArrayIndexOutOfBoundsException);
-        }
+        byte[] shaded = shade(original, "pkg/Widget.class", "pkg.**", "shaded.pkg.@1");
+        assertTrue(Arrays.equals(attr, inlineInfoAttrBytes(shaded)));
     }
 }
