@@ -1,8 +1,11 @@
 package testpkg
 
 import verify._
+import java.io.{ ByteArrayOutputStream, InputStream }
 import java.nio.file.{ Files, Path, Paths }
-import com.eed3si9n.jarjarabrams.{ Shader, Zip }
+import java.util.Arrays
+import java.util.zip.ZipFile
+import com.eed3si9n.jarjarabrams.{ ShadeRule, Shader, Zip }
 
 object ShaderTest extends BasicTestSuite {
   final val byteBuddyJar = "example/byte-buddy-agent.jar"
@@ -33,7 +36,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = false,
       expectedClass = expectedShapelessClass,
-      expectedSha = "fc7a6acf1e9bc09789240385847bcb5af62230ff6ee60a11896075d10a5bff11"
+      expectedSha = "92c0bb157f07c0f09e4cf8cfed7d88ad68131c64a664d7afac4de83d71840e3f"
     )
   }
 
@@ -42,8 +45,75 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = true,
       expectedClass = expectedShapelessClass,
-      expectedSha = "a72b5de6fd4c0befb0c27423c44cf4645f51d67812a6edc0bb3c6abf0e115105"
+      expectedSha = "e7277b6ac841dad397183516e584e5458186e23c28181fb42b8832d2d3f57564"
     )
+  }
+
+  test("leave Java classes no rule matches byte-for-byte alone") {
+    assertUnmatchedClassesUnchanged(
+      Paths.get(byteBuddyJar),
+      ShadeRule.rename("shapeless.**" -> "bar.shapeless.@1").inAll
+    )
+  }
+
+  test("leave Scala classes no rule matches byte-for-byte alone") {
+    assertUnmatchedClassesUnchanged(
+      Paths.get(shapelessJar),
+      ShadeRule.rename("net.bytebuddy.agent.**" -> "foo.@1").inAll
+    )
+  }
+
+  /**
+   * Shading a jar with rules that match none of it has to hand back the classes it was given.
+   * Reading a class with ASM and writing it back rebuilds the constant pool, which reorders it and
+   * can widen ldc into ldc_w -- a difference in the output for no difference in behaviour.
+   */
+  def assertUnmatchedClassesUnchanged(inJar: Path, rules: ShadeRule*): Unit = {
+    val tempJar = Files.createTempFile("test", ".jar")
+    Shader.shadeFile(
+      rules.toList,
+      inJar,
+      tempJar,
+      verbose = false,
+      skipManifest = false,
+      resetTimestamp = false,
+      warnOnDuplicateClass = false
+    )
+    val before = classEntries(inJar)
+    val after = classEntries(tempJar)
+    assert(before.keySet == after.keySet)
+    val rewritten = before.collect {
+      case (name, bytes) if !Arrays.equals(bytes, after(name)) => name
+    }
+    assert(rewritten.isEmpty)
+  }
+
+  def classEntries(jar: Path): Map[String, Array[Byte]] = {
+    val zip = new ZipFile(jar.toFile)
+    try {
+      val builder = Map.newBuilder[String, Array[Byte]]
+      val entries = zip.entries()
+      while (entries.hasMoreElements) {
+        val entry = entries.nextElement()
+        if (entry.getName.endsWith(".class")) {
+          val in = zip.getInputStream(entry)
+          try builder += entry.getName -> readAll(in)
+          finally in.close()
+        }
+      }
+      builder.result()
+    } finally zip.close()
+  }
+
+  def readAll(in: InputStream): Array[Byte] = {
+    val out = new ByteArrayOutputStream()
+    val buffer = new Array[Byte](8192)
+    var read = in.read(buffer)
+    while (read >= 0) {
+      out.write(buffer, 0, read)
+      read = in.read(buffer)
+    }
+    out.toByteArray
   }
 
   def testShading(
