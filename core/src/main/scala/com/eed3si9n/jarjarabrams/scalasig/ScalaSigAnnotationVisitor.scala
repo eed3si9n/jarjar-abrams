@@ -5,16 +5,28 @@ import java.io.ByteArrayOutputStream
 
 import org.objectweb.asm.{ AnnotationVisitor, ClassVisitor, Opcodes }
 
+import scala.collection.mutable
 import scala.reflect.internal.pickling.ByteCodecs
 
 class ScalaSigClassVisitor(cv: ClassVisitor, renamer: String => Option[String])
     extends ClassVisitor(Opcodes.ASM9, cv) {
 
+  private val sigVisitors = mutable.ListBuffer.empty[ScalaSigAnnotationVisitor]
+
+  /**
+   * Whether a Scala signature was actually rewritten. False for a class that carries no Scala
+   * signature at all, and for one whose signature the renamer left alone -- in both cases what
+   * this visitor emitted is a plain copy of what it read.
+   */
+  def hasChanges: Boolean = sigVisitors.exists(_.hasChanges)
+
   override def visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor = {
     if (
       descriptor == "Lscala/reflect/ScalaSignature;" || descriptor == "Lscala/reflect/ScalaLongSignature;"
     ) {
-      new ScalaSigAnnotationVisitor(visible, cv, renamer)
+      val visitor = new ScalaSigAnnotationVisitor(visible, cv, renamer)
+      sigVisitors += visitor
+      visitor
     } else {
       super.visitAnnotation(descriptor, visible)
     }
@@ -31,6 +43,10 @@ class ScalaSigAnnotationVisitor(
   private val MaxStringSizeInBytes = 65535
   private val annotationBytes: ByteArrayOutputStream = new ByteArrayOutputStream()
   private var hasWrittenAnnotation = false
+  private var changed = false
+
+  /** Whether the signature this visitor re-emitted differs from the one it read. */
+  def hasChanges: Boolean = changed
 
   override def visit(name: String, value: Any): Unit = {
     // Append all the annotation bytes, whether is is a long or normal signature
@@ -57,7 +73,7 @@ class ScalaSigAnnotationVisitor(
     val len = ByteCodecs.decode(encoded)
 
     val table = EntryTable.fromBytes(encoded.slice(0, len))
-    table.renameEntries(renamer)
+    changed = table.renameEntries(renamer)
 
     val chars = ubytesToCharArray(mapToNextModSevenBits(ByteCodecs.encode8to7(table.toBytes)))
     val utf8EncodedLength = chars.foldLeft(0) { (count, next) =>

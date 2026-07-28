@@ -28,20 +28,34 @@ object EntryTableSpec extends BasicTestSuite {
     val len = ByteCodecs.decode(bytes)
     val table = EntryTable.fromBytes(bytes.slice(0, len))
 
-    table.renameEntries {
+    assert(table.renameEntries {
       case pckg if pckg.startsWith("testpkg") => Some("shaded.testpkg")
       case _                                  => None
-    }
+    })
 
     assert(resolveName(table, "Test") == Some("shaded.testpkg.Test"))
 
-    table.renameEntries {
+    assert(table.renameEntries {
       case pckg if pckg.startsWith("shaded.testpkg") =>
         Some("testpkg.shadedtoo")
       case _ => None
-    }
+    })
 
     assert(resolveName(table, "Test") == Some("testpkg.shadedtoo.Test"))
+  }
+
+  test("entry table should report when it renamed nothing") {
+    val encoded = classOf[Test2].getAnnotation(classOf[ScalaSignature])
+    val bytes = encoded.bytes().getBytes("UTF-8")
+
+    val len = ByteCodecs.decode(bytes)
+    val table = EntryTable.fromBytes(bytes.slice(0, len))
+    val before = table.toSeq
+
+    assert(!table.renameEntries(_ => None))
+    // a renamer that "matches" but hands back the same name is not a rename either
+    assert(!table.renameEntries(Some(_)))
+    assert(table.toSeq == before)
   }
 
   test("entry table should return same serialized bytes") {

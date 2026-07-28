@@ -34,8 +34,11 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
    * Unused entries will not be removed from the table.
    *
    * @param renamer renames a fully qualified type or term name or return None if it does not match.
+   * @return true if at least one entry was renamed to a different name, false if the table came
+   *         out of this untouched.
    */
-  def renameEntries(renamer: String => Option[String]): Unit = {
+  def renameEntries(renamer: String => Option[String]): Boolean = {
+    var renamedAny = false
 
     entries.zipWithIndex.collect { case (ref: RefEntry, index) =>
       entries(ref.nameRef) match {
@@ -43,7 +46,9 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
           for {
             fqName <- resolveRef(ref)
             renamed <- renamer(fqName)
+            if renamed != fqName
           } {
+            renamedAny = true
             val parts = renamed.split('.')
 
             val myOwner = parts.init.foldLeft(Option.empty[Int]) { (owner, part) =>
@@ -62,6 +67,8 @@ class EntryTable(majorVersion: Int, minorVersion: Int, entries: mutable.Buffer[T
           throw new RuntimeException(s"Ref entry does not point to a name but to a ${other.tag}")
       }
     }
+
+    renamedAny
   }
 
   // Return existing name entry or append a new one.
