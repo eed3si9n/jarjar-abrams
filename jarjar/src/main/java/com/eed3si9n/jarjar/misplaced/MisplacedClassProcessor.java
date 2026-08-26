@@ -31,6 +31,18 @@ public abstract class MisplacedClassProcessor implements JarProcessor {
    */
   public abstract boolean shouldKeep();
 
+  /**
+   * Handles a class whose fully-qualified name cannot be read out of its bytecode, which leaves it
+   * unshaded no matter which strategy is in effect.
+   * @param classStruct The jar EntryStruct for the class.
+   * @param cause The failure raised while reading the class name.
+   */
+  public void handleUnreadableClass(EntryStruct classStruct, Exception cause) {
+    System.err.println("Unable to read classname from bytecode in " + classStruct.name);
+    System.err.println("Shading is therefore impossible, so this entry will be skipped.");
+    System.err.println(cause.getClass().getName() + ": " + cause.getMessage());
+  }
+
   @Override public boolean process(EntryStruct struct)
       throws IOException {
     if (!struct.name.endsWith(".class")) return true;
@@ -39,9 +51,7 @@ public abstract class MisplacedClassProcessor implements JarProcessor {
     try {
       originalClassName = new ClassReader(struct.data).getClassName() + ".class";
     } catch (Exception e) {
-      System.err.println("Unable to read classname from bytecode in " + struct.name);
-      System.err.println("Shading is therefore impossible, so this entry will be skipped.");
-      System.err.println(e.getClass().getName() + ": " + e.getMessage());
+      handleUnreadableClass(struct, e);
       struct.skipTransform = true;
       return true;
     }
