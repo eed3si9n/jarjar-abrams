@@ -68,6 +68,19 @@ object Shader {
       verbose: Boolean,
       skipManifest: Boolean
   ): (Array[Byte], String) => Option[(Array[Byte], String)] =
+    bytecodeShader(rules, verbose, skipManifest, misplacedClassStrategy = None)
+
+  /**
+   * @param misplacedClassStrategy how to treat entries that cannot be shaded, one of the
+   *                               `MisplacedClassProcessorFactory.Strategy` names. `None` keeps the
+   *                               default, which omits them.
+   */
+  def bytecodeShader(
+      rules: Seq[ShadeRule],
+      verbose: Boolean,
+      skipManifest: Boolean,
+      misplacedClassStrategy: Option[String]
+  ): (Array[Byte], String) => Option[(Array[Byte], String)] =
     if (rules.isEmpty) (bytes, mapping) => Some(bytes -> mapping)
     else {
       val jjrules = rules.flatMap { r =>
@@ -99,7 +112,7 @@ object Shader {
         patterns = jjrules,
         verbose = verbose,
         skipManifest = skipManifest,
-        misplacedClassStrategy = null
+        misplacedClassStrategy = misplacedClassStrategy.orNull
       )
       val excludes = proc.getExcludes
 

@@ -19,9 +19,21 @@ public class FatalMisplacedClassProcessor extends MisplacedClassProcessor {
     return false;
   }
 
-  static class FatalMisplacedClassException extends RuntimeException {
+  @Override public void handleUnreadableClass(EntryStruct classStruct, Exception cause) {
+    throw new FatalMisplacedClassException(
+        "Unable to read classname from bytecode in " + classStruct.name
+            + ", so shading it is impossible ("
+            + cause.getClass().getName() + ": " + cause.getMessage() + ")",
+        cause);
+  }
+
+  public static class FatalMisplacedClassException extends RuntimeException {
     FatalMisplacedClassException(String message) {
       super(message);
+    }
+
+    FatalMisplacedClassException(String message, Throwable cause) {
+      super(message, cause);
     }
   }
 

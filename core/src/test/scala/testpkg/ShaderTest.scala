@@ -88,6 +88,34 @@ object ShaderTest extends BasicTestSuite {
     assert(rewritten.isEmpty)
   }
 
+  test("keep unshadeable entries by default") {
+    val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = false)
+    assert(shader(unreadableClass, "payload/Unreadable.class").isDefined)
+    assert(shader(sampleClass, "payload/Misplaced.class").isEmpty)
+  }
+
+  test("fail on unshadeable entries under the fatal strategy") {
+    val shader =
+      Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = false, Some("fatal"))
+    intercept[RuntimeException] {
+      shader(unreadableClass, "payload/Unreadable.class")
+    }
+    intercept[RuntimeException] {
+      shader(sampleClass, "payload/Misplaced.class")
+    }
+  }
+
+  lazy val shadeRules = List(ShadeRule.rename("payload.**" -> "shadedpayload.@1").inAll)
+
+  lazy val sampleClass = classEntries(Paths.get(byteBuddyJar)).head._2
+
+  lazy val unreadableClass = {
+    val bytes = sampleClass.clone()
+    bytes(6) = 0.toByte
+    bytes(7) = 99.toByte
+    bytes
+  }
+
   def classEntries(jar: Path): Map[String, Array[Byte]] = {
     val zip = new ZipFile(jar.toFile)
     try {
