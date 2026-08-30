@@ -122,7 +122,8 @@ lazy val jarjar_abrams_assembly = project
 
 lazy val core = project
   .enablePlugins(ContrabandPlugin)
-  .dependsOn(jarjar)
+  // test->test: ScalaInlineInfoReader reads the attribute a shaded class carries
+  .dependsOn(jarjar % "compile->compile;test->test")
   .settings(nocomma {
     name := "jarjar-abrams-core"
 
