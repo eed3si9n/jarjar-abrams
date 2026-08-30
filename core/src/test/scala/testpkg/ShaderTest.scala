@@ -37,7 +37,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = false,
       expectedClass = expectedShapelessClass,
-      expectedSha = "92c0bb157f07c0f09e4cf8cfed7d88ad68131c64a664d7afac4de83d71840e3f"
+      expectedSha = "46269cce256194357e1c4cb06437f1e11b71a2fa33cd85512cf0b35385b6808e"
     )
   }
 
@@ -46,7 +46,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = true,
       expectedClass = expectedShapelessClass,
-      expectedSha = "e7277b6ac841dad397183516e584e5458186e23c28181fb42b8832d2d3f57564"
+      expectedSha = "63561e67bcd6b69f943e5e2b84c56c18197956c63031ea4c6578e48ec6abe92d"
     )
   }
 
@@ -111,7 +111,7 @@ object ShaderTest extends BasicTestSuite {
     val after =
       ScalaInlineInfoReader.methods(classEntries(tempJar)("shaded/" + hlistOps))
     assert(before.size == 118)
-    assert(after.size == 6)
+    assert(after == before)
   }
 
   final val hlistOps = "shapeless/syntax/HListOps.class"
