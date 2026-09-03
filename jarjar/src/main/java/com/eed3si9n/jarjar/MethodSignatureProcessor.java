@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.eed3si9n.jarjar.util.RemappingJarProcessor;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
@@ -42,15 +41,15 @@ public class MethodSignatureProcessor extends RemappingJarProcessor {
       return true;
     }
     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-    ClassReader reader;
+    ScalaClassReader reader;
     try {
-      reader = new ClassReader(struct.data);
+      reader = new ScalaClassReader(struct.data);
     } catch (RuntimeException e) {
       System.err.println("Unable to read bytecode from " + struct.name);
       e.printStackTrace();
       return true;
     }
-    reader.accept(new MethodSignatureRemapperClassVisitor(classWriter, remapper), ClassReader.EXPAND_FRAMES);
+    reader.accept(new MethodSignatureRemapperClassVisitor(classWriter, remapper));
     struct.data = classWriter.toByteArray();
     return true;
   }

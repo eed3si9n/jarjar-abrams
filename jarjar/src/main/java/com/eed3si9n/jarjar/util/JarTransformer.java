@@ -20,10 +20,8 @@ import java.io.*;
 
 import static com.eed3si9n.jarjar.misplaced.MisplacedClassProcessor.VERSIONED_CLASS_FOLDER;
 
-import com.eed3si9n.jarjar.ScalaInlineInfoAttribute;
+import com.eed3si9n.jarjar.ScalaClassReader;
 import com.eed3si9n.jarjar.TracingRemapper;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.Remapper;
@@ -36,9 +34,9 @@ abstract public class JarTransformer extends RemappingJarProcessor {
 
     public boolean processImpl(EntryStruct struct, Remapper remapper) throws IOException {
         if (struct.name.endsWith(".class") && !struct.skipTransform) {
-            ClassReader reader;
+            ScalaClassReader reader;
             try {
-                reader = new ClassReader(struct.data);
+                reader = new ScalaClassReader(struct.data);
             } catch (RuntimeException e) {
                 System.err.println("Unable to read bytecode from " + struct.name);
                 e.printStackTrace();
@@ -47,10 +45,7 @@ abstract public class JarTransformer extends RemappingJarProcessor {
 
             GetNameClassWriter w = new GetNameClassWriter(ClassWriter.COMPUTE_MAXS);
             try {
-                // Parse Scala's ScalaInlineInfo instead of copying it verbatim, so
-                // its constant-pool references are re-emitted into the rebuilt pool.
-                Attribute[] prototypes = { new ScalaInlineInfoAttribute() };
-                reader.accept(transform(w, remapper), prototypes, ClassReader.EXPAND_FRAMES);
+                reader.accept(transform(w, remapper));
             } catch (RuntimeException e) {
                 throw new IOException("Unable to transform " + struct.name, e);
             }

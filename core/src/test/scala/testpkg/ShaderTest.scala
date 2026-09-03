@@ -5,6 +5,7 @@ import java.io.{ ByteArrayOutputStream, InputStream }
 import java.nio.file.{ Files, Path, Paths }
 import java.util.Arrays
 import java.util.zip.ZipFile
+import com.eed3si9n.jarjar.ScalaInlineInfoReader
 import com.eed3si9n.jarjarabrams.{ ShadeRule, Shader, Zip }
 
 object ShaderTest extends BasicTestSuite {
@@ -36,7 +37,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = false,
       expectedClass = expectedShapelessClass,
-      expectedSha = "92c0bb157f07c0f09e4cf8cfed7d88ad68131c64a664d7afac4de83d71840e3f"
+      expectedSha = "46269cce256194357e1c4cb06437f1e11b71a2fa33cd85512cf0b35385b6808e"
     )
   }
 
@@ -45,7 +46,7 @@ object ShaderTest extends BasicTestSuite {
       Paths.get(shapelessJar),
       resetTimestamp = true,
       expectedClass = expectedShapelessClass,
-      expectedSha = "e7277b6ac841dad397183516e584e5458186e23c28181fb42b8832d2d3f57564"
+      expectedSha = "63561e67bcd6b69f943e5e2b84c56c18197956c63031ea4c6578e48ec6abe92d"
     )
   }
 
@@ -87,6 +88,33 @@ object ShaderTest extends BasicTestSuite {
     }
     assert(rewritten.isEmpty)
   }
+
+  /**
+   * Scala 2.12 and 2.13 name the methods of a ScalaInlineInfo attribute by constant-pool index. A
+   * processor that rewrites a class rebuilds its pool, so it has to re-emit those references or
+   * they dangle, and the inliner reading the shaded class reports "Error while reading
+   * InlineInfoAttribute ... Index N out of bounds for length N" (scalameta/scalameta#3338).
+   */
+  test("keep the inline info of a class a rule rewrites") {
+    val tempJar = Files.createTempFile("test", ".jar")
+    Shader.shadeFile(
+      List(ShadeRule.rename("shapeless.**" -> "shaded.shapeless.@1").inAll),
+      Paths.get(shapelessJar),
+      tempJar,
+      verbose = false,
+      skipManifest = false,
+      resetTimestamp = false,
+      warnOnDuplicateClass = false
+    )
+    val before =
+      ScalaInlineInfoReader.methods(classEntries(Paths.get(shapelessJar))(hlistOps))
+    val after =
+      ScalaInlineInfoReader.methods(classEntries(tempJar)("shaded/" + hlistOps))
+    assert(before.size == 118)
+    assert(after == before)
+  }
+
+  final val hlistOps = "shapeless/syntax/HListOps.class"
 
   test("keep unshadeable entries by default") {
     val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = false)
