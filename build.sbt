@@ -160,6 +160,15 @@ lazy val core = project
 
     testFrameworks += new TestFramework("verify.runner.Framework")
 
+    scalacOptions ++= {
+      if (scalaVersion.value.startsWith("3.3.")) {
+        Seq("-Yfuture-lazy-vals", "-release:11")
+      } else if (scalaBinaryVersion.value == "3") {
+        Nil
+      } else {
+        Seq("-release:8")
+      }
+    }
     Compile / scalacOptions += "-deprecation"
     Compile / scalacOptions ++= {
       if (scalaVersion.value.startsWith("2.13.")) Vector("-Xlint", "-Xsource:3")
@@ -175,6 +184,7 @@ lazy val sbtplugin = project
   .settings(nocomma {
     name := "sbt-jarjar-abrams"
 
+    scalacOptions += "-release:8"
     Compile / scalacOptions ++= Vector("-Xlint", "-Werror")
 
     scriptedLaunchOpts := {
